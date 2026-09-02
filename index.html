@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Minhas Compras • Smart Shopping Manager</title>
-  <meta name="description" content="Gerenciador inteligente de compras mensais com comparativo de preços históricos e design Lumina Lifestyle.">
+  <title>Smart Finances • Controle Financeiro Pessoal</title>
+  <meta name="description" content="Gerenciador financeiro pessoal mensal inteligente com planejamento, realizado e controle de parcelamentos.">
   
   <!-- PWA & Mobile Web Meta Tags with Dynamic Status Bar Sync -->
   <meta name="color-scheme" content="light dark">
@@ -12,7 +12,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" id="app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Minhas Compras">
+  <meta name="apple-mobile-web-app-title" content="Smart Finances">
   
   <!-- Immediate Theme & Status Bar Initialization (Prevents FOUC & Syncs iOS Status Bar) -->
   <script>
@@ -182,8 +182,8 @@
     <div class="flex items-center justify-between gap-3">
       <img src="icons/icon-192.png" alt="App Icon" class="w-11 h-11 rounded-xl shadow-sm">
       <div class="flex-1 min-w-0">
-        <h4 class="font-bold text-xs text-on-surface truncate">Instalar Minhas Compras</h4>
-        <p class="text-[11px] text-on-surface-variant truncate">Acesso rápido e offline no seu celular</p>
+        <h4 class="font-bold text-xs text-on-surface truncate">Instalar Smart Finances</h4>
+        <p class="text-[11px] text-on-surface-variant truncate">Controle financeiro rápido e offline no seu celular</p>
       </div>
       <div class="flex items-center gap-1.5">
         <button onclick="window.triggerPWAInstall()" class="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-xl shadow-sm hover:opacity-90 active:scale-95 transition-all">
@@ -213,12 +213,11 @@
 
   <!-- Application Scripts -->
   <script src="js/store.js"></script>
-  <script src="js/components/totalBar.js"></script>
   <script src="js/components/modals.js"></script>
   <script src="js/views/homeView.js"></script>
-  <script src="js/views/cartView.js"></script>
+  <script src="js/views/monthDetailView.js"></script>
+  <script src="js/views/reportsView.js"></script>
   <script src="js/views/categoriesView.js"></script>
-  <script src="js/views/historyView.js"></script>
   <script src="js/views/settingsView.js"></script>
   <script src="js/app.js"></script>
 

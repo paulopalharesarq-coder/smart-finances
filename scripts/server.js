@@ -42,8 +42,8 @@ function getLocalIPAddresses() {
 
 // Generate simple ASCII terminal QR code representation
 function printTerminalBanner(localUrls) {
-  console.log('\n' + '='.repeat(58));
-  console.log('  🛒 MINHAS COMPRAS • SMART SHOPPING MANAGER (PWA)');
+  console.log('='.repeat(58));
+  console.log('  💰 SMART FINANCES • CONTROLE FINANCEIRO PESSOAL (PWA)');
   console.log('='.repeat(58));
   console.log('\n  ⚡ Servidor local iniciado com sucesso!\n');
   console.log(`  🖥️  No seu Computador:   http://localhost:${PORT}`);

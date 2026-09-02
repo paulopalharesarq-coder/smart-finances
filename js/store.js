@@ -1,88 +1,263 @@
 /**
- * Lumina Lifestyle - Store & State Management
- * Persistent localStorage state with reactive subscriber pattern.
+ * Smart Finances - Core Financial State & Business Logic Engine
+ * 
+ * Single Amount Data Model (amount):
+ * - Status determines realized vs planned.
+ * - Month entity aggregation with dynamic year navigation.
+ * - Explicit Carryover Rule: Previous month remaining balance is NOT automatic.
+ * - Installment distribution, privacy toggle, and profile storage.
  */
 
-const STORAGE_KEY = 'stitch_smart_shopping_manager_v1';
+const STORAGE_KEY = 'stitch_smart_finances_v1';
 
-// Pre-defined Lumina Lifestyle Categories
-const DEFAULT_CATEGORIES = [
+const DEFAULT_EXPENSE_CATEGORIES = [
   {
-    id: 'acougue',
-    name: 'Açougue',
-    icon: 'set_meal',
-    bgColor: '#fee2e2', // Crisp red
-    textColor: '#b91c1c',
-    borderColor: '#fecaca'
+    id: 'moradia',
+    name: 'Moradia & Contas',
+    type: 'expense',
+    icon: 'home',
+    bgColor: '#dbeafe',
+    textColor: '#1d4ed8',
+    borderColor: '#bfdbfe',
+    cardBgLight: '#edf5ff', // Blue Pastel
+    cardBgDark: '#102447',  // Deep Navy
+    cardBorderLight: '#bfdbfe',
+    cardBorderDark: '#1e3a8a',
+    order: 1
   },
   {
-    id: 'hortifruti',
-    name: 'Hortifruti',
-    icon: 'eco',
-    bgColor: '#dcfce7', // Crisp leaf green
+    id: 'alimentacao',
+    name: 'Alimentação & Mercado',
+    type: 'expense',
+    icon: 'restaurant',
+    bgColor: '#dcfce7',
     textColor: '#15803d',
-    borderColor: '#bbf7d0'
+    borderColor: '#bbf7d0',
+    cardBgLight: '#effcf2', // Green Pastel
+    cardBgDark: '#0c2d16',  // Deep Forest Green
+    cardBorderLight: '#bbf7d0',
+    cardBorderDark: '#155e2e',
+    order: 2
   },
   {
-    id: 'mercearia',
-    name: 'Mercearia',
-    icon: 'shopping_cart',
-    bgColor: '#feeadf', // Soft beige
-    textColor: '#944a00',
-    borderColor: '#f2dfd4'
+    id: 'transporte',
+    name: 'Transporte & Veículo',
+    type: 'expense',
+    icon: 'directions_car',
+    bgColor: '#e0f2fe',
+    textColor: '#0284c7',
+    borderColor: '#bae6fd',
+    cardBgLight: '#f0f9ff', // Sky Blue Pastel
+    cardBgDark: '#082f49',  // Deep Sky Dark
+    cardBorderLight: '#bae6fd',
+    cardBorderDark: '#075985',
+    order: 3
   },
   {
-    id: 'laticinios',
-    name: 'Laticínios',
-    icon: 'water_drop',
-    bgColor: '#e0f2fe', // Sky blue
-    textColor: '#0369a1',
-    borderColor: '#bae6fd'
+    id: 'saude',
+    name: 'Saúde & Farmácia',
+    type: 'expense',
+    icon: 'medical_services',
+    bgColor: '#ffe4e6',
+    textColor: '#e11d48',
+    borderColor: '#fecdd3',
+    cardBgLight: '#fff1f3', // Rose / Pink Pastel
+    cardBgDark: '#3b0d18',  // Deep Rose
+    cardBorderLight: '#fecdd6',
+    cardBorderDark: '#6b152b',
+    order: 4
   },
   {
-    id: 'padaria',
-    name: 'Padaria & Confeitaria',
-    icon: 'bakery_dining',
-    bgColor: '#fef08a', // Sunny yellow (distinct from beige)
-    textColor: '#854d0e',
-    borderColor: '#fde047'
+    id: 'contas',
+    name: 'Contas & Serviços',
+    type: 'expense',
+    icon: 'receipt_long',
+    bgColor: '#fef08a',
+    textColor: '#ca8a04',
+    borderColor: '#fde047',
+    cardBgLight: '#fefce8', // Amber / Yellow Pastel
+    cardBgDark: '#382305',  // Deep Amber
+    cardBorderLight: '#fde047',
+    cardBorderDark: '#6b4609',
+    order: 5
   },
   {
-    id: 'bebidas',
-    name: 'Bebidas',
-    icon: 'local_bar',
-    bgColor: '#f3e8ff', // Royal lavender
-    textColor: '#7e22ce',
-    borderColor: '#e9d5ff'
+    id: 'lazer',
+    name: 'Lazer & Viagens',
+    type: 'expense',
+    icon: 'sports_esports',
+    bgColor: '#f3e8ff',
+    textColor: '#9333ea',
+    borderColor: '#e9d5ff',
+    cardBgLight: '#faf5ff', // Violet Pastel
+    cardBgDark: '#2b0b47',  // Deep Violet
+    cardBorderLight: '#e9d5ff',
+    cardBorderDark: '#581c87',
+    order: 6
   },
   {
-    id: 'limpeza',
-    name: 'Limpeza',
-    icon: 'cleaning_services',
-    bgColor: '#ccfbf1', // Crisp teal (distinct from leaf green)
-    textColor: '#0f766e',
-    borderColor: '#99f6e4'
+    id: 'educacao',
+    name: 'Educação',
+    type: 'expense',
+    icon: 'school',
+    bgColor: '#ccfbf1',
+    textColor: '#0d9488',
+    borderColor: '#99f6e4',
+    cardBgLight: '#f0fdfa', // Teal Pastel
+    cardBgDark: '#062b27',  // Deep Teal
+    cardBorderLight: '#99f6e4',
+    cardBorderDark: '#115e59',
+    order: 7
   },
   {
-    id: 'higiene',
-    name: 'Higiene & Cuidados',
-    icon: 'spa',
-    bgColor: '#fce7f3', // Crisp pink (distinct from red)
-    textColor: '#be185d',
-    borderColor: '#fbcfe8'
+    id: 'cartao',
+    name: 'Cartão de Crédito',
+    type: 'expense',
+    icon: 'credit_card',
+    bgColor: '#fce7f3',
+    textColor: '#c026d3',
+    borderColor: '#fbcfe8',
+    cardBgLight: '#fdf4ff', // Fuchsia / Magenta Pastel
+    cardBgDark: '#380a42',  // Deep Magenta
+    cardBorderLight: '#f5d0fe',
+    cardBorderDark: '#701a75',
+    order: 8
+  },
+  {
+    id: 'outras_despesas',
+    name: 'Outras Despesas',
+    type: 'expense',
+    icon: 'more_horiz',
+    bgColor: '#f2dfd4',
+    textColor: '#564337',
+    borderColor: '#dcc1b1',
+    cardBgLight: '#faf8f6', // Neutral Warm Pastel
+    cardBgDark: '#271d17',  // Deep Warm Neutral
+    cardBorderLight: '#ede3dc',
+    cardBorderDark: '#443329',
+    order: 9
   }
 ];
 
-// Initial pantry items (empty by default)
-const DEFAULT_PANTRY = [];
+const DEFAULT_INCOME_CATEGORIES = [
+  {
+    id: 'salario',
+    name: 'Salário & Proventos',
+    type: 'income',
+    icon: 'work',
+    bgColor: '#dcfce7',
+    textColor: '#15803d',
+    borderColor: '#bbf7d0',
+    cardBgLight: '#effcf2',
+    cardBgDark: '#052e16',
+    cardBorderLight: '#bbf7d0',
+    cardBorderDark: '#166534',
+    order: 1
+  },
+  {
+    id: 'investimentos',
+    name: 'Rendimentos & Investimentos',
+    type: 'income',
+    icon: 'trending_up',
+    bgColor: '#e0f2fe',
+    textColor: '#0369a1',
+    borderColor: '#bae6fd',
+    cardBgLight: '#f0f9ff',
+    cardBgDark: '#082f49',
+    cardBorderLight: '#bae6fd',
+    cardBorderDark: '#075985',
+    order: 2
+  },
+  {
+    id: 'freelance',
+    name: 'Freelance & Serviços',
+    type: 'income',
+    icon: 'laptop_mac',
+    bgColor: '#fef08a',
+    textColor: '#b45309',
+    borderColor: '#fde047',
+    cardBgLight: '#fffbeb',
+    cardBgDark: '#3b1c06',
+    cardBorderLight: '#fde68a',
+    cardBorderDark: '#6b370d',
+    order: 3
+  },
+  {
+    id: 'reembolsos',
+    name: 'Reembolsos',
+    type: 'income',
+    icon: 'assignment_return',
+    bgColor: '#ccfbf1',
+    textColor: '#0f766e',
+    borderColor: '#99f6e4',
+    cardBgLight: '#f0fdfa',
+    cardBgDark: '#042f2e',
+    cardBorderLight: '#99f6e4',
+    cardBorderDark: '#115e59',
+    order: 4
+  },
+  {
+    id: 'saldo_anterior',
+    name: 'Saldo Trazido Anterior',
+    type: 'income',
+    icon: 'move_to_inbox',
+    bgColor: '#ffedd5',
+    textColor: '#c2410c',
+    borderColor: '#fed7aa',
+    cardBgLight: '#fff7ed',
+    cardBgDark: '#3a1508',
+    cardBorderLight: '#fed7aa',
+    cardBorderDark: '#6e2a0f',
+    order: 5
+  },
+  {
+    id: 'outras_receitas',
+    name: 'Outras Receitas',
+    type: 'income',
+    icon: 'attach_money',
+    bgColor: '#f3e8ff',
+    textColor: '#7e22ce',
+    borderColor: '#e9d5ff',
+    cardBgLight: '#faf5ff',
+    cardBgDark: '#2d0b47',
+    cardBorderLight: '#e9d5ff',
+    cardBorderDark: '#5b1c87',
+    order: 6
+  }
+];
 
-// Initial lists (empty by default)
-const DEFAULT_LISTS = [];
+// Helper to format Date string to YYYY-MM
+function getCurrentMonthKey() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+}
 
-class ShoppingStore {
+// Helper to format Month Name (e.g., "Setembro 2026")
+function formatMonthName(monthKey) {
+  if (!monthKey || !monthKey.includes('-')) return monthKey;
+  const [year, month] = monthKey.split('-').map(Number);
+  const date = new Date(year, month - 1, 1);
+  const name = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+// Helper to calculate next / prev month key
+function getAdjacentMonthKey(monthKey, delta) {
+  if (!monthKey || !monthKey.includes('-')) return getCurrentMonthKey();
+  const [year, month] = monthKey.split('-').map(Number);
+  const date = new Date(year, month - 1 + delta, 1);
+  const nextYear = date.getFullYear();
+  const nextMonth = String(date.getMonth() + 1).padStart(2, '0');
+  return `${nextYear}-${nextMonth}`;
+}
+
+class FinanceStore {
   constructor() {
     this.subscribers = [];
     this.state = this.loadState();
+    this.ensureCurrentMonthInitialized();
   }
 
   loadState() {
@@ -96,26 +271,212 @@ class ShoppingStore {
       if (saved) {
         const parsed = JSON.parse(saved);
         parsed.themePreference = themePref || parsed.themePreference || 'system';
+        
+        // Merge & update category color tokens into loaded categories
+        const defaultCatsMap = {};
+        [...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES].forEach(dc => {
+          defaultCatsMap[dc.id] = dc;
+        });
+
+        if (!parsed.categories || parsed.categories.length === 0) {
+          parsed.categories = [...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES];
+        } else {
+          parsed.categories = parsed.categories.map(c => {
+            const def = defaultCatsMap[c.id];
+            if (def) {
+              return { 
+                ...def, 
+                ...c, 
+                cardBgLight: def.cardBgLight, 
+                cardBgDark: def.cardBgDark, 
+                cardBorderLight: def.cardBorderLight, 
+                cardBorderDark: def.cardBorderDark, 
+                textColor: def.textColor, 
+                bgColor: def.bgColor, 
+                borderColor: def.borderColor 
+              };
+            }
+            return c;
+          });
+        }
+        if (!parsed.months) parsed.months = {};
+        if (!parsed.expenses) parsed.expenses = [];
+        if (!parsed.incomes) parsed.incomes = [];
+        if (!parsed.installmentPlans) parsed.installmentPlans = [];
+        if (!parsed.recurringRules) parsed.recurringRules = [];
+        if (!parsed.payeesPayers) parsed.payeesPayers = [];
+        if (parsed.profileConfigured === undefined) {
+          parsed.profileConfigured = Boolean(parsed.userName && parsed.userName.trim().length > 0);
+        }
+        // Normalize single-amount migration if existing data had plannedAmount
+        parsed.expenses.forEach(e => {
+          if (e.amount === undefined && e.plannedAmount !== undefined) {
+            e.amount = Number(e.plannedAmount) || 0;
+          }
+        });
+        parsed.incomes.forEach(i => {
+          if (i.amount === undefined && i.plannedAmount !== undefined) {
+            i.amount = Number(i.plannedAmount) || 0;
+          }
+        });
         return parsed;
       }
     } catch (e) {
-      console.error('Error loading state from localStorage', e);
+      console.error('[FinanceStore] Error loading state from localStorage:', e);
     }
 
-    // Default clean state
-    return {
-      activeTab: 'home', // 'home' | 'cart' | 'categories' | 'history' | 'settings'
-      activeListId: null,
-      showPreviousPrices: false,
-      searchQuery: '',
-      selectedCategoryFilter: 'all',
-      monthlyBudget: 0.00,
-      userName: 'Usuário',
-      themePreference: themePref,
-      categories: DEFAULT_CATEGORIES,
-      pantry: [],
-      lists: []
+    const currentKey = getCurrentMonthKey();
+    const initialMonths = {};
+    
+    // Create initial months
+    const pastMonthsKeys = [
+      getAdjacentMonthKey(currentKey, -1),
+      getAdjacentMonthKey(currentKey, -2),
+      getAdjacentMonthKey(currentKey, -3),
+      getAdjacentMonthKey(currentKey, -4),
+      getAdjacentMonthKey(currentKey, -5)
+    ];
+
+    initialMonths[currentKey] = {
+      key: currentKey,
+      name: formatMonthName(currentKey),
+      status: 'open',
+      carriedBalance: 0,
+      carriedBalanceAccepted: false,
+      notes: '',
+      closedAt: null,
+      createdAt: new Date().toISOString()
     };
+
+    pastMonthsKeys.forEach(k => {
+      initialMonths[k] = {
+        key: k,
+        name: formatMonthName(k),
+        status: 'closed',
+        carriedBalance: 0,
+        carriedBalanceAccepted: false,
+        notes: '',
+        closedAt: `${k}-28T23:59:59.000Z`,
+        createdAt: `${k}-01T00:00:00.000Z`
+      };
+    });
+
+    // Seed realistic sample expenses matching reference proportions with single-amount model
+    const initialExpenses = [
+      {
+        id: 'seed-exp-1',
+        monthKey: currentKey,
+        name: 'Farmácia & Cuidados',
+        amount: 142.02,
+        dueDate: `${currentKey}-04`,
+        categoryId: 'saude',
+        payee: 'Drogaria São Paulo',
+        status: 'paid',
+        paymentMethod: 'credit',
+        notes: 'Medicamentos e vitaminas',
+        isRecurring: false,
+        paidAt: `${currentKey}-04T10:30:00.000Z`
+      },
+      {
+        id: 'seed-exp-2',
+        monthKey: currentKey,
+        name: 'Aluguel & Condomínio',
+        amount: 2000.00,
+        dueDate: `${currentKey}-10`,
+        categoryId: 'moradia',
+        payee: 'Imobiliária',
+        status: 'pending',
+        paymentMethod: 'boleto',
+        notes: 'Moradia mensal',
+        isRecurring: true
+      },
+      {
+        id: 'seed-exp-3',
+        monthKey: currentKey,
+        name: 'Supermercado & Feira',
+        amount: 857.98,
+        dueDate: `${currentKey}-18`,
+        categoryId: 'alimentacao',
+        payee: 'Supermercado Pão de Açúcar',
+        status: 'pending',
+        paymentMethod: 'credit',
+        notes: 'Compras do mês',
+        isRecurring: false
+      },
+
+      // Past Months matching the reference card numbers:
+      { id: 'seed-p1-e', monthKey: pastMonthsKeys[0], name: 'Despesas Gerais de Julho', amount: 4000.00, categoryId: 'moradia', status: 'paid' },
+      { id: 'seed-p2-e', monthKey: pastMonthsKeys[1], name: 'Despesas Gerais de Junho', amount: 3800.00, categoryId: 'moradia', status: 'paid' },
+      { id: 'seed-p3-e', monthKey: pastMonthsKeys[2], name: 'Despesas Gerais de Maio', amount: 3900.00, categoryId: 'moradia', status: 'paid' },
+      { id: 'seed-p4-e', monthKey: pastMonthsKeys[3], name: 'Despesas Gerais de Abril', amount: 4120.40, categoryId: 'moradia', status: 'paid' },
+      { id: 'seed-p5-e', monthKey: pastMonthsKeys[4], name: 'Despesas Gerais de Março', amount: 3700.00, categoryId: 'moradia', status: 'paid' }
+    ];
+
+    // Seed realistic incomes
+    const initialIncomes = [
+      {
+        id: 'seed-inc-1',
+        monthKey: currentKey,
+        name: 'Salário Mensal',
+        amount: 2780.00,
+        expectedDate: `${currentKey}-05`,
+        receivedDate: `${currentKey}-05`,
+        categoryId: 'salario',
+        payer: 'Empresa',
+        status: 'received',
+        isRecurring: true,
+        receivedAt: `${currentKey}-05T08:00:00.000Z`
+      },
+
+      // Past Months:
+      { id: 'seed-p1-i', monthKey: pastMonthsKeys[0], name: 'Salário Julho', amount: 4305.00, categoryId: 'salario', status: 'received' },
+      { id: 'seed-p2-i', monthKey: pastMonthsKeys[1], name: 'Salário Junho', amount: 3838.69, categoryId: 'salario', status: 'received' },
+      { id: 'seed-p3-i', monthKey: pastMonthsKeys[2], name: 'Salário Maio', amount: 3976.50, categoryId: 'salario', status: 'received' },
+      { id: 'seed-p4-i', monthKey: pastMonthsKeys[3], name: 'Salário Abril', amount: 4000.00, categoryId: 'salario', status: 'received' },
+      { id: 'seed-p5-i', monthKey: pastMonthsKeys[4], name: 'Salário Março', amount: 3810.20, categoryId: 'salario', status: 'received' }
+    ];
+
+    return {
+      activeTab: 'home',
+      selectedMonthKey: currentKey,
+      monthDetailTab: 'expenses',
+      monthFilterCategory: 'all',
+      monthFilterStatus: 'all',
+      monthFilterPayeePayer: 'all',
+      monthFilterPaymentMethod: 'all',
+      monthSearchQuery: '',
+      monthListSection: 'previous',
+      selectedYearFilter: null, // null for dynamic stream or specific year string e.g. '2025'
+      userName: '',
+      userPhoto: '',
+      profileConfigured: false,
+      hideBalances: false,
+      themePreference: themePref,
+      categories: [...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES],
+      months: initialMonths,
+      expenses: initialExpenses,
+      incomes: initialIncomes,
+      installmentPlans: [],
+      recurringRules: [],
+      payeesPayers: []
+    };
+  }
+
+  // Profile Management
+  saveProfile({ userName, userPhoto }) {
+    if (userName !== undefined) this.state.userName = (userName || '').trim();
+    if (userPhoto !== undefined) this.state.userPhoto = userPhoto || '';
+    this.state.profileConfigured = true;
+    this.saveState();
+  }
+
+  isProfileConfigured() {
+    return Boolean(this.state.profileConfigured && this.state.userName && this.state.userName.trim().length > 0);
+  }
+
+  toggleHideBalances() {
+    this.state.hideBalances = !this.state.hideBalances;
+    this.saveState();
   }
 
   saveState() {
@@ -123,7 +484,7 @@ class ShoppingStore {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
       this.notify();
     } catch (e) {
-      console.error('Error saving state to localStorage', e);
+      console.error('[FinanceStore] Error saving state to localStorage:', e);
     }
   }
 
@@ -135,7 +496,37 @@ class ShoppingStore {
   }
 
   notify() {
-    this.subscribers.forEach(cb => cb(this.state));
+    this.subscribers.forEach(cb => {
+      try {
+        cb(this.state);
+      } catch (err) {
+        console.error('[FinanceStore] Error in subscriber notification:', err);
+      }
+    });
+  }
+
+  // Ensure current month initialized
+  ensureCurrentMonthInitialized() {
+    const currentKey = getCurrentMonthKey();
+    this.ensureMonthExists(currentKey);
+  }
+
+  ensureMonthExists(monthKey) {
+    if (!this.state.months) this.state.months = {};
+    if (!this.state.months[monthKey]) {
+      this.state.months[monthKey] = {
+        key: monthKey,
+        name: formatMonthName(monthKey),
+        status: 'open',
+        carriedBalance: 0,
+        carriedBalanceAccepted: false,
+        notes: '',
+        closedAt: null,
+        createdAt: new Date().toISOString()
+      };
+      this.saveState();
+    }
+    return this.state.months[monthKey];
   }
 
   // Theme Management
@@ -151,56 +542,199 @@ class ShoppingStore {
     this.saveState();
   }
 
-  // Navigation
+  // Navigation & View State
   setActiveTab(tab) {
     this.state.activeTab = tab;
     this.saveState();
   }
 
-  setActiveList(listId) {
-    this.state.activeListId = listId;
+  setSelectedMonth(monthKey) {
+    this.ensureMonthExists(monthKey);
+    this.state.selectedMonthKey = monthKey;
     this.saveState();
   }
 
-  togglePreviousPrices(show) {
-    this.state.showPreviousPrices = typeof show === 'boolean' ? show : !this.state.showPreviousPrices;
+  openMonthDetail(monthKey, defaultSubTab = 'expenses') {
+    this.ensureMonthExists(monthKey);
+    this.state.selectedMonthKey = monthKey;
+    this.state.monthDetailTab = defaultSubTab;
+    this.state.activeTab = 'month';
     this.saveState();
   }
 
-  setSearchQuery(q) {
-    this.state.searchQuery = q || '';
-    this.saveState();
-  }
-
-  setCategoryFilter(catId) {
-    this.state.selectedCategoryFilter = catId || 'all';
-    this.saveState();
-  }
-
-  // Getters
-  getActiveList() {
-    if (!this.state.lists || this.state.lists.length === 0) return null;
-    if (this.state.activeListId) {
-      const list = this.state.lists.find(l => l.id === this.state.activeListId);
-      if (list) return list;
+  setMonthDetailTab(tab) {
+    if (tab === 'expenses' || tab === 'incomes') {
+      this.state.monthDetailTab = tab;
+      this.saveState();
     }
-    // Return the first in-progress/uncompleted list; NEVER fallback to completed lists
-    return this.state.lists.find(l => l.status !== 'completed') || null;
   }
 
-  getListById(id) {
-    return this.state.lists.find(l => l.id === id);
+  setMonthListSection(section) {
+    if (section === 'previous' || section === 'future') {
+      this.state.monthListSection = section;
+      this.saveState();
+    }
+  }
+
+  setSelectedYearFilter(year) {
+    this.state.selectedYearFilter = year || null;
+    this.saveState();
+  }
+
+  setMonthSearchQuery(query) {
+    this.state.monthSearchQuery = query || '';
+    this.saveState();
+  }
+
+  setMonthFilterCategory(catId) {
+    this.state.monthFilterCategory = catId || 'all';
+    this.saveState();
+  }
+
+  setMonthFilterStatus(status) {
+    this.state.monthFilterStatus = status || 'all';
+    this.saveState();
+  }
+
+  setMonthFilterPayeePayer(val) {
+    this.state.monthFilterPayeePayer = val || 'all';
+    this.saveState();
+  }
+
+  clearMonthFilters() {
+    this.state.monthFilterCategory = 'all';
+    this.state.monthFilterStatus = 'all';
+    this.state.monthFilterPayeePayer = 'all';
+    this.state.monthFilterPaymentMethod = 'all';
+    this.state.monthSearchQuery = '';
+    this.saveState();
+  }
+
+  hasActiveFilters() {
+    return Boolean(
+      (this.state.monthFilterCategory && this.state.monthFilterCategory !== 'all') ||
+      (this.state.monthFilterStatus && this.state.monthFilterStatus !== 'all') ||
+      (this.state.monthFilterPayeePayer && this.state.monthFilterPayeePayer !== 'all') ||
+      (this.state.monthSearchQuery && this.state.monthSearchQuery.trim().length > 0)
+    );
+  }
+
+  // Month Entity Getters
+  getCurrentMonthKey() {
+    return getCurrentMonthKey();
+  }
+
+  getSelectedMonthKey() {
+    return this.state.selectedMonthKey || getCurrentMonthKey();
+  }
+
+  getMonth(monthKey) {
+    if (!monthKey) return null;
+    return this.state.months[monthKey] || this.ensureMonthExists(monthKey);
+  }
+
+  // Year selection for Home month listing
+  setSelectedYear(year) {
+    this.state.selectedYear = parseInt(year, 10) || new Date().getFullYear();
+    this.saveState();
+  }
+
+  getSelectedYear() {
+    return this.state.selectedYear || new Date().getFullYear();
+  }
+
+  // Dynamic Chronological Month Generation STRICTLY RESTRICTED TO SELECTED YEAR
+  getPreviousMonthsList() {
+    const currentKey = getCurrentMonthKey();
+    const [currentY, currentM] = currentKey.split('-').map(Number);
+    const selectedY = this.getSelectedYear();
+    const months = [];
+
+    if (selectedY === currentY) {
+      // In the current year: show all months prior to the current month (e.g. month-1 down to 1)
+      for (let m = currentM - 1; m >= 1; m--) {
+        const mKey = `${selectedY}-${String(m).padStart(2, '0')}`;
+        months.push({
+          key: mKey,
+          name: formatMonthName(mKey),
+          status: this.state.months[mKey]?.status || 'closed'
+        });
+      }
+    } else if (selectedY < currentY) {
+      // In a previous year: show all 12 months from December down to January
+      for (let m = 12; m >= 1; m--) {
+        const mKey = `${selectedY}-${String(m).padStart(2, '0')}`;
+        months.push({
+          key: mKey,
+          name: formatMonthName(mKey),
+          status: this.state.months[mKey]?.status || 'closed'
+        });
+      }
+    }
+
+    return months;
+  }
+
+  getFutureMonthsList() {
+    const currentKey = getCurrentMonthKey();
+    const [currentY, currentM] = currentKey.split('-').map(Number);
+    const selectedY = this.getSelectedYear();
+    const months = [];
+
+    if (selectedY === currentY) {
+      // In the current year: show all months after the current month (e.g. month+1 up to 12)
+      for (let m = currentM + 1; m <= 12; m++) {
+        const mKey = `${selectedY}-${String(m).padStart(2, '0')}`;
+        months.push({
+          key: mKey,
+          name: formatMonthName(mKey),
+          status: this.state.months[mKey]?.status || 'open'
+        });
+      }
+    } else if (selectedY > currentY) {
+      // In a future year: show all 12 months from January up to December
+      for (let m = 1; m <= 12; m++) {
+        const mKey = `${selectedY}-${String(m).padStart(2, '0')}`;
+        months.push({
+          key: mKey,
+          name: formatMonthName(mKey),
+          status: this.state.months[mKey]?.status || 'open'
+        });
+      }
+    }
+
+    return months;
+  }
+
+  getAllMonthsList() {
+    const currentKey = getCurrentMonthKey();
+    const monthsMap = { ...this.state.months };
+    if (!monthsMap[currentKey]) {
+      monthsMap[currentKey] = this.ensureMonthExists(currentKey);
+    }
+    return Object.values(monthsMap);
+  }
+
+  // Categories
+  getCategories(type = null) {
+    if (!this.state.categories) return [];
+    if (!type || type === 'all') return this.state.categories;
+    return this.state.categories.filter(c => c.type === type || c.type === 'both');
   }
 
   getCategoryById(id) {
-    if (!id || id === 'sem-categoria') {
+    if (!id) {
       return {
         id: null,
         name: 'Sem categoria',
         icon: 'folder_open',
         bgColor: '#f2dfd4',
         textColor: '#564337',
-        borderColor: '#dcc1b1'
+        borderColor: '#dcc1b1',
+        cardBgLight: '#faf8f6',
+        cardBgDark: '#271d17',
+        cardBorderLight: '#ede3dc',
+        cardBorderDark: '#443329'
       };
     }
     return this.state.categories.find(c => c.id === id) || {
@@ -209,334 +743,385 @@ class ShoppingStore {
       icon: 'category',
       bgColor: '#feeadf',
       textColor: '#944a00',
-      borderColor: '#f2dfd4'
+      borderColor: '#f2dfd4',
+      cardBgLight: '#faf8f6',
+      cardBgDark: '#271d17',
+      cardBorderLight: '#ede3dc',
+      cardBorderDark: '#443329'
     };
   }
 
-  // Calculations
-  calculateListTotals(list) {
-    if (!list) return { currentTotal: 0, previousTotal: 0, boughtTotal: 0, totalItems: 0, boughtItems: 0 };
-
-    if (list.items && list.items.length > 0) {
-      let currentTotal = 0;
-      let previousTotal = 0;
-      let boughtTotal = 0;
-      let boughtItems = 0;
-
-      list.items.forEach(item => {
-        const qty = Number(item.quantity) || 0;
-        const curPrice = (item.currentPrice !== null && item.currentPrice !== undefined && item.currentPrice !== '') ? (Number(item.currentPrice) || 0) : 0;
-        const prevPrice = (item.previousPrice !== null && item.previousPrice !== undefined && item.previousPrice !== '') ? (Number(item.previousPrice) || 0) : curPrice;
-
-        currentTotal += qty * curPrice;
-        previousTotal += qty * prevPrice;
-
-        if (item.bought) {
-          boughtTotal += qty * curPrice;
-          boughtItems += 1;
-        }
-      });
-
+  // Centralized Category Card Color Engine (Source of Truth)
+  getCategoryCardStyles(catInput) {
+    const cat = typeof catInput === 'string' ? this.getCategoryById(catInput) : (catInput || this.getCategoryById(null));
+    
+    if (cat.cardBgLight && cat.cardBgDark) {
       return {
-        currentTotal,
-        previousTotal,
-        boughtTotal,
-        totalItems: list.items.length,
-        boughtItems
+        cardBgLight: cat.cardBgLight,
+        cardBgDark: cat.cardBgDark,
+        cardBorderLight: cat.cardBorderLight || cat.borderColor || '#bfdbfe',
+        cardBorderDark: cat.cardBorderDark || '#1e3a8a',
+        textColor: cat.textColor || '#1c1917',
+        bgColor: cat.bgColor || '#dbeafe',
+        borderColor: cat.borderColor || '#bfdbfe'
       };
     }
 
     return {
-      currentTotal: list.totalSpent || 0,
-      previousTotal: list.totalSpent || 0,
-      boughtTotal: list.totalSpent || 0,
-      totalItems: list.itemsCount || 0,
-      boughtItems: list.itemsCount || 0
+      cardBgLight: '#faf8f6',
+      cardBgDark: '#241c17',
+      cardBorderLight: '#ede3dc',
+      cardBorderDark: '#3d2e25',
+      textColor: cat.textColor || '#1c1917',
+      bgColor: cat.bgColor || '#f2dfd4',
+      borderColor: cat.borderColor || '#dcc1b1'
     };
   }
 
-  // Item Actions
-  addItemToList(listId, itemData) {
-    const list = this.getListById(listId);
-    if (!list) return;
+  // Expenses CRUD with Single Amount Model (amount)
+  getExpensesByMonth(monthKey) {
+    if (!monthKey) return [];
+    return (this.state.expenses || []).filter(e => e.monthKey === monthKey);
+  }
 
-    if (!list.items) list.items = [];
+  getExpenseById(id) {
+    return (this.state.expenses || []).find(e => e.id === id) || null;
+  }
 
-    const rawCategory = itemData.categoryId;
-    const cleanCategory = (rawCategory && typeof rawCategory === 'string' && rawCategory.trim() !== '' && rawCategory !== 'sem-categoria') ? rawCategory.trim() : null;
+  addExpense(expense) {
+    const monthKey = expense.monthKey || getCurrentMonthKey();
+    this.ensureMonthExists(monthKey);
 
-    const hasCurrentPrice = itemData.currentPrice !== null && itemData.currentPrice !== undefined && itemData.currentPrice !== '';
-    const parsedCurrentPrice = hasCurrentPrice ? Number(itemData.currentPrice) : null;
-    const hasPreviousPrice = itemData.previousPrice !== null && itemData.previousPrice !== undefined && itemData.previousPrice !== '';
-    const parsedPreviousPrice = hasPreviousPrice ? Number(itemData.previousPrice) : (parsedCurrentPrice !== null ? parsedCurrentPrice : null);
+    const amount = Number(expense.amount !== undefined ? expense.amount : expense.plannedAmount) || 0;
 
-    const newItem = {
-      id: 'item-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-      name: itemData.name.trim(),
-      categoryId: cleanCategory,
-      quantity: Number(itemData.quantity) || 1,
-      unit: itemData.unit || 'unid',
-      currentPrice: parsedCurrentPrice,
-      previousPrice: parsedPreviousPrice,
-      bought: true // Requirement 7: Every new product enters cart automatically
+    const newExpense = {
+      id: expense.id || 'exp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+      monthKey,
+      name: (expense.name || '').trim() || 'Despesa sem nome',
+      amount,
+      dueDate: expense.dueDate || `${monthKey}-10`,
+      categoryId: expense.categoryId || 'outras_despesas',
+      payee: (expense.payee || '').trim(),
+      status: expense.status || 'pending', // 'pending' | 'paid' | 'overdue' | 'cancelled'
+      paymentMethod: expense.paymentMethod || 'credit',
+      notes: (expense.notes || '').trim(),
+      isRecurring: Boolean(expense.isRecurring),
+      recurringRuleId: expense.recurringRuleId || null,
+      isInstallment: Boolean(expense.isInstallment),
+      installmentPlanId: expense.installmentPlanId || null,
+      installmentNumber: expense.installmentNumber || null,
+      totalInstallments: expense.totalInstallments || null,
+      carriedFromMonthKey: expense.carriedFromMonthKey || null,
+      originalExpenseId: expense.originalExpenseId || null,
+      paidAt: expense.status === 'paid' ? (expense.paidAt || new Date().toISOString()) : null,
+      createdAt: expense.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    list.items.push(newItem);
+    if (!this.state.expenses) this.state.expenses = [];
+    this.state.expenses.unshift(newExpense);
     this.saveState();
+    return newExpense;
   }
 
-  updateItemQuantity(listId, itemId, delta) {
-    const list = this.getListById(listId);
-    if (!list || !list.items) return;
+  updateExpense(id, updates) {
+    const index = (this.state.expenses || []).findIndex(e => e.id === id);
+    if (index === -1) return null;
 
-    const item = list.items.find(i => i.id === itemId);
-    if (!item) return;
+    const current = this.state.expenses[index];
+    const amount = updates.amount !== undefined ? Number(updates.amount) : (updates.plannedAmount !== undefined ? Number(updates.plannedAmount) : current.amount);
 
-    const step = item.unit === 'kg' ? 0.5 : 1;
-    let newQty = (Number(item.quantity) || 1) + (delta * step);
-    if (newQty <= 0) {
-      this.removeItemFromList(listId, itemId);
-      return;
-    }
-    item.quantity = Math.round(newQty * 100) / 100;
-    this.saveState();
-  }
+    const updated = {
+      ...current,
+      ...updates,
+      amount,
+      updatedAt: new Date().toISOString()
+    };
 
-  updateItemPrice(listId, itemId, newPrice) {
-    const list = this.getListById(listId);
-    if (!list || !list.items) return;
-
-    const item = list.items.find(i => i.id === itemId);
-    if (!item) return;
-
-    if (newPrice === null || newPrice === undefined || newPrice === '') {
-      item.currentPrice = null;
-    } else {
-      item.currentPrice = Math.max(0, Number(newPrice) || 0);
-    }
-    this.saveState();
-  }
-
-  toggleItemBought(listId, itemId) {
-    const list = this.getListById(listId);
-    if (!list || !list.items) return;
-
-    const item = list.items.find(i => i.id === itemId);
-    if (!item) return;
-
-    item.bought = !item.bought;
-    this.saveState();
-  }
-
-  removeItemFromList(listId, itemId) {
-    const list = this.getListById(listId);
-    if (!list || !list.items) return;
-
-    list.items = list.items.filter(i => i.id !== itemId);
-    this.saveState();
-  }
-
-  updateItemDetails(listId, itemId, updated) {
-    const list = this.getListById(listId);
-    if (!list || !list.items) return;
-
-    const item = list.items.find(i => i.id === itemId);
-    if (!item) return;
-
-    if (updated.categoryId !== undefined) {
-      const rawCat = updated.categoryId;
-      updated.categoryId = (rawCat && typeof rawCat === 'string' && rawCat.trim() !== '' && rawCat !== 'sem-categoria') ? rawCat.trim() : null;
+    if (updates.status === 'paid' && current.status !== 'paid') {
+      updated.paidAt = new Date().toISOString();
+    } else if (updates.status && updates.status !== 'paid') {
+      updated.paidAt = null;
     }
 
-    Object.assign(item, updated);
+    this.state.expenses[index] = updated;
     this.saveState();
+    return updated;
   }
 
-  // List Management
-  createNewList(title, baseOnPrevious = false, sourceListId = null) {
-    const id = 'list-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
-    let items = [];
+  deleteExpense(id) {
+    const prevLen = (this.state.expenses || []).length;
+    this.state.expenses = (this.state.expenses || []).filter(e => e.id !== id);
+    if (this.state.expenses.length !== prevLen) {
+      this.saveState();
+      return true;
+    }
+    return false;
+  }
 
-    if (baseOnPrevious) {
-      const sourceList = sourceListId
-        ? this.getListById(sourceListId)
-        : (this.state.lists && this.state.lists.length > 0 ? this.state.lists[0] : null);
+  toggleExpensePaid(id) {
+    const expense = this.getExpenseById(id);
+    if (!expense) return null;
+    const newStatus = expense.status === 'paid' ? 'pending' : 'paid';
+    return this.updateExpense(id, { status: newStatus });
+  }
 
-      if (sourceList && sourceList.items) {
-        // Clone items: current price paid in previous list becomes the historical previousPrice
-        // The new list's currentPrice starts empty/null
-        items = sourceList.items.map(item => {
-          const hasCurrent = item.currentPrice !== null && item.currentPrice !== undefined && item.currentPrice !== '' && Number(item.currentPrice) > 0;
-          const hasPrev = item.previousPrice !== null && item.previousPrice !== undefined && item.previousPrice !== '' && Number(item.previousPrice) > 0;
-          const lastPaidPrice = hasCurrent ? Number(item.currentPrice) : (hasPrev ? Number(item.previousPrice) : null);
+  // Incomes CRUD with Single Amount Model (amount)
+  getIncomesByMonth(monthKey) {
+    if (!monthKey) return [];
+    return (this.state.incomes || []).filter(i => i.monthKey === monthKey);
+  }
 
-          return {
-            id: 'item-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-            name: item.name,
-            categoryId: item.categoryId || null,
-            quantity: item.quantity !== undefined ? item.quantity : 1,
-            unit: item.unit || 'unid',
-            currentPrice: null, // Starts empty / not informed
-            previousPrice: lastPaidPrice, // Last paid price becomes previous reference
-            bought: true // Cloned items start in cart with missing price highlight
-          };
+  getIncomeById(id) {
+    return (this.state.incomes || []).find(i => i.id === id) || null;
+  }
+
+  addIncome(income) {
+    const monthKey = income.monthKey || getCurrentMonthKey();
+    this.ensureMonthExists(monthKey);
+
+    const amount = Number(income.amount !== undefined ? income.amount : income.plannedAmount) || 0;
+
+    const newIncome = {
+      id: income.id || 'inc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+      monthKey,
+      name: (income.name || '').trim() || 'Receita sem nome',
+      amount,
+      expectedDate: income.expectedDate || `${monthKey}-05`,
+      receivedDate: income.receivedDate || (income.status === 'received' ? `${monthKey}-05` : null),
+      categoryId: income.categoryId || 'salario',
+      payer: (income.payer || '').trim(),
+      status: income.status || 'received', // 'pending' | 'received' | 'cancelled'
+      isRecurring: Boolean(income.isRecurring),
+      recurringRuleId: income.recurringRuleId || null,
+      isBalanceCarriedOver: Boolean(income.isBalanceCarriedOver),
+      notes: (income.notes || '').trim(),
+      receivedAt: income.status === 'received' ? (income.receivedAt || new Date().toISOString()) : null,
+      createdAt: income.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (!this.state.incomes) this.state.incomes = [];
+    this.state.incomes.unshift(newIncome);
+    this.saveState();
+    return newIncome;
+  }
+
+  updateIncome(id, updates) {
+    const index = (this.state.incomes || []).findIndex(i => i.id === id);
+    if (index === -1) return null;
+
+    const current = this.state.incomes[index];
+    const amount = updates.amount !== undefined ? Number(updates.amount) : (updates.plannedAmount !== undefined ? Number(updates.plannedAmount) : current.amount);
+
+    const updated = {
+      ...current,
+      ...updates,
+      amount,
+      updatedAt: new Date().toISOString()
+    };
+
+    if (updates.status === 'received' && current.status !== 'received') {
+      updated.receivedAt = new Date().toISOString();
+    } else if (updates.status && updates.status !== 'received') {
+      updated.receivedAt = null;
+    }
+
+    this.state.incomes[index] = updated;
+    this.saveState();
+    return updated;
+  }
+
+  deleteIncome(id) {
+    const prevLen = (this.state.incomes || []).length;
+    this.state.incomes = (this.state.incomes || []).filter(i => i.id !== id);
+    if (this.state.incomes.length !== prevLen) {
+      this.saveState();
+      return true;
+    }
+    return false;
+  }
+
+  toggleIncomeReceived(id) {
+    const income = this.getIncomeById(id);
+    if (!income) return null;
+    const newStatus = income.status === 'received' ? 'pending' : 'received';
+    return this.updateIncome(id, { status: newStatus });
+  }
+
+  // Installment Plans Engine
+  createInstallmentPlan({ description, totalAmount, totalInstallments, startMonthKey, categoryId, payee, paymentMethod }) {
+    const planId = 'inst-' + Date.now();
+    const count = Math.max(2, parseInt(totalInstallments, 10) || 2);
+    const amount = Number(totalAmount) || 0;
+    const installmentAmount = Math.round((amount / count) * 100) / 100;
+    const startKey = startMonthKey || getCurrentMonthKey();
+
+    const plan = {
+      id: planId,
+      description: (description || '').trim() || 'Compra Parcelada',
+      totalAmount: amount,
+      installmentAmount,
+      totalInstallments: count,
+      startMonthKey: startKey,
+      categoryId: categoryId || 'outras_despesas',
+      payee: (payee || '').trim(),
+      paymentMethod: paymentMethod || 'credit',
+      createdAt: new Date().toISOString()
+    };
+
+    if (!this.state.installmentPlans) this.state.installmentPlans = [];
+    this.state.installmentPlans.push(plan);
+
+    for (let i = 1; i <= count; i++) {
+      const monthKey = getAdjacentMonthKey(startKey, i - 1);
+      this.ensureMonthExists(monthKey);
+
+      this.addExpense({
+        monthKey,
+        name: `${plan.description} (${i}/${count})`,
+        amount: installmentAmount,
+        dueDate: `${monthKey}-10`,
+        categoryId: plan.categoryId,
+        payee: plan.payee,
+        status: 'pending',
+        paymentMethod: plan.paymentMethod,
+        isInstallment: true,
+        installmentPlanId: planId,
+        installmentNumber: i,
+        totalInstallments: count
+      });
+    }
+
+    this.saveState();
+    return plan;
+  }
+
+  getInstallmentExpenses(planId) {
+    return (this.state.expenses || [])
+      .filter(e => e.installmentPlanId === planId)
+      .sort((a, b) => (a.installmentNumber || 0) - (b.installmentNumber || 0));
+  }
+
+  // Explicit Month Close & Carryover Rule Engine
+  closeMonth(monthKey, { carryPositiveBalance = false, carryUnpaidExpenses = false }) {
+    const month = this.ensureMonthExists(monthKey);
+    const summary = this.calculateMonthSummary(monthKey);
+    const nextMonthKey = getAdjacentMonthKey(monthKey, 1);
+    const nextMonth = this.ensureMonthExists(nextMonthKey);
+
+    month.status = 'closed';
+    month.closedAt = new Date().toISOString();
+
+    // 1. Explicit positive balance carryover rule
+    if (carryPositiveBalance && summary.actualBalance > 0) {
+      nextMonth.carriedBalance = summary.actualBalance;
+      nextMonth.carriedBalanceAccepted = true;
+
+      const existingCarriedIncome = this.getIncomesByMonth(nextMonthKey).find(i => i.isBalanceCarriedOver);
+      if (existingCarriedIncome) {
+        this.updateIncome(existingCarriedIncome.id, {
+          amount: summary.actualBalance,
+          status: 'received'
+        });
+      } else {
+        this.addIncome({
+          monthKey: nextMonthKey,
+          name: `Saldo trazido de ${summary.monthName}`,
+          amount: summary.actualBalance,
+          expectedDate: `${nextMonthKey}-01`,
+          categoryId: 'saldo_anterior',
+          status: 'received',
+          isBalanceCarriedOver: true
         });
       }
     }
 
-    const currentMonthName = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-    const capitalizedMonth = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
+    // 2. Explicit unpaid expenses carryover rule
+    if (carryUnpaidExpenses) {
+      const unpaidExpenses = this.getExpensesByMonth(monthKey).filter(e => e.status === 'pending' || e.status === 'overdue');
+      unpaidExpenses.forEach(exp => {
+        this.addExpense({
+          monthKey: nextMonthKey,
+          name: exp.name,
+          amount: exp.amount,
+          dueDate: `${nextMonthKey}-10`,
+          categoryId: exp.categoryId,
+          payee: exp.payee,
+          status: 'pending',
+          paymentMethod: exp.paymentMethod,
+          carriedFromMonthKey: monthKey,
+          originalExpenseId: exp.id,
+          notes: `Pendente de ${summary.monthName}`
+        });
+      });
+    }
 
-    const newList = {
-      id,
-      title: title || `Compras • ${capitalizedMonth}`,
-      subtitle: capitalizedMonth,
-      status: 'in_progress',
-      createdAt: new Date().toISOString(),
-      completedAt: null,
-      notes: baseOnPrevious ? 'Baseada no mês anterior' : 'Nova lista',
-      items
+    this.saveState();
+    return { success: true, summary, nextMonthKey };
+  }
+
+  reopenMonth(monthKey) {
+    const month = this.getMonth(monthKey);
+    if (!month) return false;
+    month.status = 'open';
+    month.closedAt = null;
+    this.saveState();
+    return true;
+  }
+
+  // Single-Amount Calculation Engine
+  calculateMonthSummary(monthKey) {
+    const month = this.getMonth(monthKey);
+    const carriedBalance = (month && month.carriedBalanceAccepted) ? (Number(month.carriedBalance) || 0) : 0;
+
+    const expenses = this.getExpensesByMonth(monthKey).filter(e => e.status !== 'cancelled');
+    const incomes = this.getIncomesByMonth(monthKey).filter(i => i.status !== 'cancelled');
+
+    // Receitas
+    const plannedIncomes = incomes.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+    const receivedIncomes = incomes
+      .filter(i => i.status === 'received')
+      .reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+
+    // Despesas
+    const plannedExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const paidExpenses = expenses
+      .filter(e => e.status === 'paid')
+      .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const remainingExpenses = expenses
+      .filter(e => e.status === 'pending' || e.status === 'overdue')
+      .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+    // Previsão de Fechamento: Receitas totais + Saldo Inicial Trazido - Despesas Totais
+    const forecastBalance = (plannedIncomes + carriedBalance) - plannedExpenses;
+
+    // Saldo Atual: Receitas Recebidas + Saldo Inicial Trazido - Despesas Pagas
+    const actualBalance = (receivedIncomes + carriedBalance) - paidExpenses;
+
+    let cardTone = 'neutral';
+    if (forecastBalance > 0) cardTone = 'positive';
+    else if (forecastBalance < 0) cardTone = 'negative';
+
+    return {
+      monthKey,
+      monthName: month ? month.name : formatMonthName(monthKey),
+      monthStatus: month ? month.status : 'open',
+      carriedBalance,
+      plannedIncomes,
+      receivedIncomes,
+      plannedExpenses,
+      paidExpenses,
+      remainingExpenses,
+      forecastBalance,
+      actualBalance,
+      cardTone,
+      totalExpensesCount: expenses.length,
+      totalIncomesCount: incomes.length
     };
-
-    this.state.lists.unshift(newList);
-    this.state.activeListId = id;
-    this.state.activeTab = 'cart';
-    this.saveState();
   }
 
-  completeActiveList(listId) {
-    const list = this.getListById(listId);
-    if (!list) return;
-
-    const totals = this.calculateListTotals(list);
-    list.status = 'completed';
-    list.completedAt = new Date().toISOString();
-    list.totalSpent = totals.currentTotal;
-    list.itemsCount = totals.totalItems;
-
-    // When the currently viewed list is finalized, clear activeListId and go to home view
-    if (this.state.activeListId === listId) {
-      this.state.activeListId = null;
-      this.state.activeTab = 'home';
-    }
-
-    this.saveState();
-  }
-
-  deleteList(listId) {
-    this.state.lists = this.state.lists.filter(l => l.id !== listId);
-    if (this.state.activeListId === listId) {
-      const remainingUncompleted = this.state.lists.find(l => l.status !== 'completed');
-      this.state.activeListId = remainingUncompleted ? remainingUncompleted.id : null;
-    }
-    this.saveState();
-  }
-
-  renameList(listId, newTitle, newNotes) {
-    const list = this.getListById(listId);
-    if (!list) return;
-    if (newTitle !== undefined && newTitle.trim()) {
-      list.title = newTitle.trim();
-    }
-    if (newNotes !== undefined) {
-      list.notes = newNotes.trim();
-    }
-    this.saveState();
-  }
-
-  updateList(listId, updates) {
-    const list = this.getListById(listId);
-    if (!list) return;
-    Object.assign(list, updates);
-    this.saveState();
-  }
-
-  // Category Management
-  addCategory(category) {
-    const id = 'cat-' + Date.now();
-    this.state.categories.push({
-      id,
-      name: category.name.trim(),
-      icon: category.icon || 'category',
-      bgColor: category.bgColor || '#feeadf',
-      textColor: category.textColor || '#944a00',
-      borderColor: category.borderColor || '#f2dfd4'
-    });
-    this.saveState();
-  }
-
-  updateCategory(id, updated) {
-    const cat = this.state.categories.find(c => c.id === id);
-    if (cat) {
-      Object.assign(cat, updated);
-      this.saveState();
-    }
-  }
-
-  deleteCategory(id) {
-    this.state.categories = this.state.categories.filter(c => c.id !== id);
-    this.saveState();
-  }
-
-  reorderCategories(fromIndex, toIndex) {
-    if (fromIndex < 0 || fromIndex >= this.state.categories.length) return;
-    if (toIndex < 0 || toIndex >= this.state.categories.length) return;
-    if (fromIndex === toIndex) return;
-
-    const [movedCat] = this.state.categories.splice(fromIndex, 1);
-    this.state.categories.splice(toIndex, 0, movedCat);
-    this.saveState();
-  }
-
-  moveCategory(id, direction) {
-    const currentIndex = this.state.categories.findIndex(c => c.id === id);
-    if (currentIndex === -1) return;
-
-    const targetIndex = currentIndex + direction;
-    if (targetIndex >= 0 && targetIndex < this.state.categories.length) {
-      this.reorderCategories(currentIndex, targetIndex);
-    }
-  }
-
-  setCategories(newCategories) {
-    if (Array.isArray(newCategories)) {
-      this.state.categories = newCategories;
-      this.saveState();
-    }
-  }
-
-  // Pantry Management
-  addPantryItem(item) {
-    const rawCat = item.categoryId;
-    const cleanCategory = (rawCat && typeof rawCat === 'string' && rawCat.trim() !== '' && rawCat !== 'sem-categoria') ? rawCat.trim() : null;
-
-    this.state.pantry.push({
-      id: 'p-' + Date.now(),
-      name: item.name.trim(),
-      categoryId: cleanCategory,
-      unit: item.unit || 'unid',
-      defaultPrice: Number(item.defaultPrice) || 0
-    });
-    this.saveState();
-  }
-
-  deletePantryItem(id) {
-    this.state.pantry = this.state.pantry.filter(p => p.id !== id);
-    this.saveState();
-  }
-
-  // Settings
-  setMonthlyBudget(budget) {
-    this.state.monthlyBudget = Number(budget) || 0;
-    this.saveState();
-  }
-
-  resetToDefault() {
-    localStorage.removeItem(STORAGE_KEY);
-    this.state = this.loadState();
-    this.notify();
-  }
-
+  // Backup & Reset
   exportDataAsJSON() {
     return JSON.stringify(this.state, null, 2);
   }
@@ -544,17 +1129,25 @@ class ShoppingStore {
   importDataFromJSON(jsonString) {
     try {
       const parsed = JSON.parse(jsonString);
-      if (parsed && parsed.lists && parsed.categories) {
+      if (parsed && typeof parsed === 'object') {
         this.state = parsed;
         this.saveState();
         return true;
       }
     } catch (e) {
-      console.error('Failed to import JSON', e);
+      console.error('[FinanceStore] Import error:', e);
     }
     return false;
   }
+
+  resetToDefault() {
+    localStorage.removeItem(STORAGE_KEY);
+    this.state = this.loadState();
+    this.ensureCurrentMonthInitialized();
+    this.saveState();
+  }
 }
 
-// Global Store Instance
-window.shoppingStore = new ShoppingStore();
+// Global Singleton Instance
+window.financeStore = new FinanceStore();
+window.shoppingStore = window.financeStore;

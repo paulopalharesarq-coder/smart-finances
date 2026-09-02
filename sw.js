@@ -1,9 +1,9 @@
 /**
- * Minhas Compras - Service Worker (PWA Offline & Cache Manager)
+ * Smart Finances - Service Worker (PWA Offline & Cache Manager)
  * Provides robust offline functionality, instant loads and asset caching.
  */
 
-const CACHE_NAME = 'minhas-compras-v202609021647';
+const CACHE_NAME = 'smart-finances-v202609022208';
 
 const PRECACHE_ASSETS = [
   './',
@@ -13,12 +13,11 @@ const PRECACHE_ASSETS = [
   './js/lib/qrcode.js',
   './js/store.js',
   './js/app.js',
-  './js/components/totalBar.js',
   './js/components/modals.js',
   './js/views/homeView.js',
-  './js/views/cartView.js',
+  './js/views/monthDetailView.js',
+  './js/views/reportsView.js',
   './js/views/categoriesView.js',
-  './js/views/historyView.js',
   './js/views/settingsView.js',
   './icons/favicon-32.png',
   './icons/icon-192.png',
@@ -102,7 +101,6 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch((err) => {
-          // Network failure is fine if cached
           return cachedResponse;
         });
 

@@ -1,7 +1,7 @@
 {
-  "name": "Minhas Compras • Smart Shopping",
-  "short_name": "Minhas Compras",
-  "description": "Gerenciador inteligente de compras mensais com histórico comparativo de preços e design Lumina Lifestyle.",
+  "name": "Smart Finances • Gestão Financeira",
+  "short_name": "Smart Finances",
+  "description": "Gerenciador financeiro pessoal mensal com planejamento, realizado e controle de parcelamentos.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -10,7 +10,7 @@
   "theme_color": "#fff8f5",
   "lang": "pt-BR",
   "dir": "ltr",
-  "categories": ["shopping", "productivity", "finance", "utilities"],
+  "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -45,24 +45,24 @@
   ],
   "shortcuts": [
     {
-      "name": "Carrinho de Compras",
-      "short_name": "Carrinho",
-      "description": "Acessar itens do carrinho atual",
-      "url": "./index.html#cart",
+      "name": "Nova Despesa",
+      "short_name": "+ Despesa",
+      "description": "Cadastrar nova despesa rapidamente",
+      "url": "./index.html#new-expense",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Categorias",
-      "short_name": "Categorias",
-      "description": "Gerenciar categorias e despensa",
-      "url": "./index.html#categories",
+      "name": "Nova Receita",
+      "short_name": "+ Receita",
+      "description": "Cadastrar nova receita",
+      "url": "./index.html#new-income",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Histórico de Gastos",
-      "short_name": "Histórico",
-      "description": "Ver estatísticas e listas passadas",
-      "url": "./index.html#history",
+      "name": "Relatórios Financeiros",
+      "short_name": "Relatórios",
+      "description": "Ver estatísticas e evolução mensal",
+      "url": "./index.html#reports",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]

@@ -1,7 +1,7 @@
 @echo off
-title Minhas Compras - PWA Server
+title Smart Finances - PWA Server
 echo ========================================================
-echo   Iniciando Minhas Compras (PWA) no Servidor Local...
+echo   Iniciando Smart Finances (PWA) no Servidor Local...
 echo ========================================================
 node scripts/server.js
 pause

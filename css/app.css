@@ -245,6 +245,191 @@ body {
   box-shadow: 0 8px 30px var(--shadow-color);
 }
 
+/* Category Tinted Cards (Light / Dark Adaptive System) */
+.category-tinted-card {
+  background-color: var(--card-bg, #faf8f6);
+  border-color: var(--card-border, #ede3dc);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.dark .category-tinted-card,
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .category-tinted-card {
+    background-color: var(--card-bg-dark, #1f1914);
+    border-color: var(--card-border-dark, #382c23);
+  }
+}
+
+/* Floating Bottom Dock (Reinforced Frosted Glass & Blur on Home) */
+.floating-bottom-dock {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 16px 36px -4px rgba(148, 74, 0, 0.12), 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+html.dark .floating-bottom-dock,
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .floating-bottom-dock {
+    background: rgba(28, 20, 16, 0.72);
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.7);
+  }
+}
+
+/* Floating Month Summary Dock (Reinforced Frosted Glass & Blur on Month View) */
+.floating-month-summary-dock {
+  background: rgba(255, 255, 255, 0.74);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.90);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+html.dark .floating-month-summary-dock,
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .floating-month-summary-dock {
+    background: rgba(28, 20, 16, 0.74);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.7);
+  }
+}
+
+/* Month Cards on Home with subtle closing tone */
+.month-card-item {
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.month-card-positive {
+  background-color: #f3faf5;
+  border: 1px solid #d2edd7;
+}
+
+.month-card-negative {
+  background-color: #fdf4f4;
+  border: 1px solid #fad5d5;
+}
+
+.month-card-neutral {
+  background-color: #ffffff;
+  border: 1px solid #efe4dc;
+}
+
+html.dark .month-card-positive,
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .month-card-positive {
+    background-color: #14281a;
+    border: 1px solid #204b2b;
+  }
+}
+
+html.dark .month-card-negative,
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .month-card-negative {
+    background-color: #2e1817;
+    border: 1px solid #542220;
+  }
+}
+
+html.dark .month-card-neutral,
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .month-card-neutral {
+    background-color: #241b15;
+    border: 1px solid #3a2c22;
+  }
+}
+
+/* Keypad Sheet and Buttons */
+.keypad-sheet {
+  background: var(--color-surface);
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.keypad-btn {
+  height: 54px;
+  border-radius: 16px;
+  background-color: var(--color-surface-container);
+  color: var(--color-on-surface);
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.keypad-btn:active {
+  transform: scale(0.92);
+  background-color: var(--color-surface-variant);
+}
+
+/* Card Principal do Mês Atual - Gradientes & Sombras Refinados */
+.card-month-negative {
+  background: linear-gradient(135deg, #f78e72 0%, #ea7355 100%);
+  box-shadow: 0 16px 36px -4px rgba(234, 115, 85, 0.38), 0 4px 12px rgba(234, 115, 85, 0.2);
+}
+
+.card-month-positive {
+  background: linear-gradient(135deg, #48b872 0%, #309b57 100%);
+  box-shadow: 0 16px 36px -4px rgba(48, 155, 87, 0.38), 0 4px 12px rgba(48, 155, 87, 0.2);
+}
+
+.card-month-neutral {
+  background: linear-gradient(135deg, #d3b9a8 0%, #bca08d 100%);
+  box-shadow: 0 16px 36px -4px rgba(188, 160, 141, 0.3), 0 4px 12px rgba(188, 160, 141, 0.15);
+}
+
+html.dark .card-month-negative,
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .card-month-negative {
+    background: linear-gradient(135deg, #ab482f 0%, #852f1b 100%);
+    box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+  html:not(.light) .card-month-positive {
+    background: linear-gradient(135deg, #1e703f 0%, #124d27 100%);
+    box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+  html:not(.light) .card-month-neutral {
+    background: linear-gradient(135deg, #3d3027 0%, #2b2019 100%);
+    box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* Standalone Month Items */
+.month-card-item {
+  background-color: #ffffff;
+  border: 1px solid #efe4dc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.month-card-item:hover {
+  background-color: #fdfaf7;
+  border-color: #e4d3c6;
+}
+
+html.dark .month-card-item,
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .month-card-item {
+    background-color: #241b15;
+    border-color: #3a2c22;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  }
+  html:not(.light) .month-card-item:hover {
+    background-color: #2b2019;
+    border-color: #4a382c;
+  }
+}
+
 /* Smooth transitions & animations */
 .fade-in {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;

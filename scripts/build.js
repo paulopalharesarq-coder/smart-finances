@@ -16,7 +16,7 @@ const commitSha = process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA ||
 const now = new Date();
 const formattedDate = now.toISOString().replace(/[-:T.]/g, '').substring(0, 12);
 const buildVersion = commitSha ? `${formattedDate}-${commitSha.substring(0, 7)}` : `${formattedDate}`;
-const cacheName = `minhas-compras-v${buildVersion}`;
+const cacheName = `smart-finances-v${buildVersion}`;
 
 console.log(`[BUILD] Generating automated cache version: ${cacheName}`);
 
@@ -30,7 +30,7 @@ if (fs.existsSync(swPath)) {
 
 // 2. Generate version.json
 const versionData = {
-  appName: 'Minhas Compras',
+  appName: 'Smart Finances',
   version: buildVersion,
   cacheName: cacheName,
   buildTime: now.toISOString(),
@@ -40,5 +40,3 @@ fs.writeFileSync(versionPath, JSON.stringify(versionData, null, 2), 'utf8');
 console.log(`[BUILD] Generated version.json with version '${buildVersion}'`);
 
 console.log(`[BUILD] Build finished successfully! Preserved all custom icon assets.`);
-
-
