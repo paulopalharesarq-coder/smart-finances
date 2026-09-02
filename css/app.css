@@ -1,0 +1,799 @@
+/* Lumina Lifestyle - Smart Monthly Shopping Manager Styles */
+
+/* ==========================================================================
+   Design Tokens - Light Mode (Default)
+   ========================================================================== */
+:root {
+  --color-primary: #944a00;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #e67e22;
+  --color-on-primary-container: #502600;
+  --color-primary-fixed: #ffdcc5;
+  --color-primary-fixed-dim: #ffb783;
+  --color-on-primary-fixed: #301400;
+  --color-on-primary-fixed-variant: #713700;
+  --color-inverse-primary: #ffb783;
+
+  --color-secondary: #006d37;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #7bf8a1;
+  --color-on-secondary-container: #007239;
+  --color-secondary-fixed: #7efba4;
+  --color-secondary-fixed-dim: #61de8a;
+  --color-on-secondary-fixed: #00210c;
+  --color-on-secondary-fixed-variant: #005228;
+
+  --color-tertiary: #b4271d;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #ff6856;
+  --color-on-tertiary-container: #6a0001;
+  --color-tertiary-fixed: #ffdad5;
+  --color-tertiary-fixed-dim: #ffb4a9;
+  --color-on-tertiary-fixed: #410000;
+  --color-on-tertiary-fixed-variant: #910807;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --color-background: #fff8f5;
+  --color-on-background: #231a13;
+  --color-surface: #fff8f5;
+  --color-on-surface: #231a13;
+  --color-surface-dim: #e9d6cc;
+  --color-surface-bright: #fff8f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fff1ea;
+  --color-surface-container: #feeadf;
+  --color-surface-container-high: #f8e4da;
+  --color-surface-container-highest: #f2dfd4;
+  --color-surface-variant: #f2dfd4;
+  --color-on-surface-variant: #564337;
+  --color-inverse-surface: #392e27;
+  --color-inverse-on-surface: #ffede4;
+  --color-surface-tint: #944a00;
+
+  --color-outline: #897365;
+  --color-outline-variant: #dcc1b1;
+
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(220, 193, 177, 0.4);
+  --glass-total-bar: rgba(255, 255, 255, 0.55);
+  --modal-backdrop: rgba(0, 0, 0, 0.45);
+  --shadow-color: rgba(148, 74, 0, 0.08);
+}
+
+/* ==========================================================================
+   Design Tokens - Dark Mode via Class (.dark)
+   ========================================================================== */
+html.dark {
+  --color-primary: #ffb783;
+  --color-on-primary: #4f2500;
+  --color-primary-container: #e67e22;
+  --color-on-primary-container: #ffe0cb;
+  --color-primary-fixed: #3d2212;
+  --color-primary-fixed-dim: #5c341c;
+  --color-on-primary-fixed: #ffdcc5;
+  --color-on-primary-fixed-variant: #ffb783;
+  --color-inverse-primary: #944a00;
+
+  --color-secondary: #61de8a;
+  --color-on-secondary: #00391a;
+  --color-secondary-container: #005228;
+  --color-on-secondary-container: #a3e9b8;
+  --color-secondary-fixed: #163820;
+  --color-secondary-fixed-dim: #235431;
+  --color-on-secondary-fixed: #a3e9b8;
+  --color-on-secondary-fixed-variant: #61de8a;
+
+  --color-tertiary: #ffb4a9;
+  --color-on-tertiary: #680003;
+  --color-tertiary-container: #93000a;
+  --color-on-tertiary-container: #ffdad4;
+  --color-tertiary-fixed: #441713;
+  --color-tertiary-fixed-dim: #64231d;
+  --color-on-tertiary-fixed: #ffdad4;
+  --color-on-tertiary-fixed-variant: #ffb4a9;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-background: #18120d;
+  --color-on-background: #f2dfd4;
+  --color-surface: #18120d;
+  --color-on-surface: #f2dfd4;
+  --color-surface-dim: #18120d;
+  --color-surface-bright: #3f3128;
+  --color-surface-container-lowest: #1f1712;
+  --color-surface-container-low: #241b15;
+  --color-surface-container: #2b2019;
+  --color-surface-container-high: #33271f;
+  --color-surface-container-highest: #3e3027;
+  --color-surface-variant: #33271f;
+  --color-on-surface-variant: #d5c3b7;
+  --color-inverse-surface: #f2dfd4;
+  --color-inverse-on-surface: #231a13;
+  --color-surface-tint: #ffb783;
+
+  --color-outline: #9f8c7e;
+  --color-outline-variant: #534237;
+
+  --glass-bg: rgba(31, 23, 18, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-total-bar: rgba(24, 18, 13, 0.72);
+  --modal-backdrop: rgba(0, 0, 0, 0.65);
+  --shadow-color: rgba(0, 0, 0, 0.45);
+}
+
+/* ==========================================================================
+   Design Tokens - Dark Mode via System Media Query (when not explicitly light)
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  html:not(.light) {
+    --color-primary: #ffb783;
+    --color-on-primary: #4f2500;
+    --color-primary-container: #e67e22;
+    --color-on-primary-container: #ffe0cb;
+    --color-primary-fixed: #3d2212;
+    --color-primary-fixed-dim: #5c341c;
+    --color-on-primary-fixed: #ffdcc5;
+    --color-on-primary-fixed-variant: #ffb783;
+    --color-inverse-primary: #944a00;
+
+    --color-secondary: #61de8a;
+    --color-on-secondary: #00391a;
+    --color-secondary-container: #005228;
+    --color-on-secondary-container: #a3e9b8;
+    --color-secondary-fixed: #163820;
+    --color-secondary-fixed-dim: #235431;
+    --color-on-secondary-fixed: #a3e9b8;
+    --color-on-secondary-fixed-variant: #61de8a;
+
+    --color-tertiary: #ffb4a9;
+    --color-on-tertiary: #680003;
+    --color-tertiary-container: #93000a;
+    --color-on-tertiary-container: #ffdad4;
+    --color-tertiary-fixed: #441713;
+    --color-tertiary-fixed-dim: #64231d;
+    --color-on-tertiary-fixed: #ffdad4;
+    --color-on-tertiary-fixed-variant: #ffb4a9;
+
+    --color-error: #ffb4ab;
+    --color-on-error: #690005;
+    --color-error-container: #93000a;
+    --color-on-error-container: #ffdad6;
+
+    --color-background: #18120d;
+    --color-on-background: #f2dfd4;
+    --color-surface: #18120d;
+    --color-on-surface: #f2dfd4;
+    --color-surface-dim: #18120d;
+    --color-surface-bright: #3f3128;
+    --color-surface-container-lowest: #1f1712;
+    --color-surface-container-low: #241b15;
+    --color-surface-container: #2b2019;
+    --color-surface-container-high: #33271f;
+    --color-surface-container-highest: #3e3027;
+    --color-surface-variant: #33271f;
+    --color-on-surface-variant: #d5c3b7;
+    --color-inverse-surface: #f2dfd4;
+    --color-inverse-on-surface: #231a13;
+    --color-surface-tint: #ffb783;
+
+    --color-outline: #9f8c7e;
+    --color-outline-variant: #534237;
+
+    --glass-bg: rgba(31, 23, 18, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-total-bar: rgba(24, 18, 13, 0.72);
+    --modal-backdrop: rgba(0, 0, 0, 0.65);
+    --shadow-color: rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* ==========================================================================
+   Base Elements
+   ========================================================================== */
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Material Symbols configuration */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.material-symbols-outlined.fill,
+.material-symbols-outlined[data-weight="fill"] {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-nav {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid var(--glass-border);
+}
+
+.glass-total-bar {
+  background-color: var(--glass-total-bar);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 30px var(--shadow-color);
+}
+
+/* Smooth transitions & animations */
+.fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.scale-in {
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0.5; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Item bought strike-through style */
+.item-bought {
+  opacity: 0.65;
+  filter: saturate(0.8);
+}
+
+.item-bought .item-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--color-outline);
+}
+
+/* Hide number spin buttons across browsers */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
+}
+
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--color-surface-variant);
+  transition: .3s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+input:checked + .slider {
+  background-color: var(--color-primary-container);
+}
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Price change tags */
+.price-up {
+  color: #ba1a1a;
+  background-color: #ffdad6;
+}
+.price-down {
+  color: #006d37;
+  background-color: #d1f4dc;
+}
+.price-equal {
+  color: #564337;
+  background-color: #feeadf;
+}
+
+html.dark .price-up {
+  color: #ffb4ab;
+  background-color: #561e18;
+}
+html.dark .price-down {
+  color: #7bf8a1;
+  background-color: #0b3d1c;
+}
+html.dark .price-equal {
+  color: #d5c3b7;
+  background-color: #33271f;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .price-up {
+    color: #ffb4ab;
+    background-color: #561e18;
+  }
+  html:not(.light) .price-down {
+    color: #7bf8a1;
+    background-color: #0b3d1c;
+  }
+  html:not(.light) .price-equal {
+    color: #d5c3b7;
+    background-color: #33271f;
+  }
+}
+
+/* App container constraints */
+.app-container {
+  max-width: 540px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  background-color: var(--color-background);
+  box-shadow: 0 0 40px var(--shadow-color);
+  padding-top: env(safe-area-inset-top, 0px);
+  transition: background-color 0.2s ease;
+}
+
+/* Mobile Safe Areas for Navigation Bar and Sticky Elements */
+.safe-bottom-padding {
+  padding-bottom: max(1.25rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));
+}
+
+.bottom-nav-container {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* QR Code Container Glass Card */
+.qr-container {
+  background: white;
+  padding: 16px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px var(--shadow-color);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Disable touch callout on buttons for native app feel */
+button, a, input, select {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+input, textarea {
+  user-select: text;
+}
+
+/* Swipe to Delete Styles */
+.swipe-item-container {
+  touch-action: pan-y;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+
+.swipe-card-surface {
+  touch-action: pan-y;
+  will-change: transform;
+  transform: translateX(0);
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.swipe-card-surface.swiping {
+  transition: none !important;
+}
+
+/* Category Drag and Drop Reordering */
+.category-draggable {
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.category-draggable.dragging {
+  opacity: 0.55;
+  transform: scale(0.98);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  cursor: grabbing;
+}
+
+.category-draggable.drop-target-above {
+  border-top: 3px solid var(--color-primary) !important;
+}
+
+.category-draggable.drop-target-below {
+  border-bottom: 3px solid var(--color-primary) !important;
+}
+
+/* Top App Headers - 100% Solid, Opaque & Seamless (Continuous with background, no line or divider) */
+header.bg-background,
+header.sticky,
+header {
+  background-color: var(--color-background) !important;
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+header::before,
+header::after {
+  display: none !important;
+}
+
+/* Category Item Card Theme System */
+.category-item-card {
+  background-color: var(--cat-bg, var(--color-surface-container)) !important;
+  border-color: var(--cat-border, transparent);
+  color: #231a13;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.category-item-card h3,
+.category-item-card span,
+.category-item-card button,
+.category-item-card strong {
+  transition: color 0.2s ease;
+}
+
+/* Dark Mode Card Adaptation: Deep, saturated versions of the same color identity with high contrast light text */
+html.dark .category-item-card {
+  color: #f2dfd4 !important;
+}
+
+html.dark .category-item-card h3 {
+  color: #fcf6f2 !important;
+}
+
+html.dark .category-item-card .text-on-surface,
+html.dark .category-item-card .text-on-surface-variant {
+  color: #f2dfd4 !important;
+}
+
+html.dark .category-item-card button.text-on-surface-variant {
+  color: #e6d3c7 !important;
+}
+
+/* 1. Bege / Terracota (Mercearia) -> Deep Terracotta / Warm Bronze-Amber */
+html.dark .category-item-card[style*="#feeadf"] {
+  background-color: #382318 !important;
+  border-color: #5c3826 !important;
+}
+
+/* 2. Verde Folha (Hortifruti) -> Deep Forest Emerald */
+html.dark .category-item-card[style*="#dcfce7"],
+html.dark .category-item-card[style*="#e8f5e9"] {
+  background-color: #133822 !important;
+  border-color: #1f5936 !important;
+}
+
+/* 3. Vermelho (Açougue) -> Deep Ruby Crimson */
+html.dark .category-item-card[style*="#fee2e2"],
+html.dark .category-item-card[style*="#ffdad6"] {
+  background-color: #421717 !important;
+  border-color: #6e2727 !important;
+}
+
+/* 4. Azul Céu (Laticínios) -> Deep Sapphire / Navy */
+html.dark .category-item-card[style*="#e0f2fe"],
+html.dark .category-item-card[style*="#e3f2fd"] {
+  background-color: #142d47 !important;
+  border-color: #1e4770 !important;
+}
+
+/* 5. Amarelo Solar (Padaria) -> Deep Amber Gold / Mustard Bronze */
+html.dark .category-item-card[style*="#fef08a"],
+html.dark .category-item-card[style*="#fff3e0"] {
+  background-color: #3d3008 !important;
+  border-color: #69530e !important;
+}
+
+/* 6. Lilás / Roxo (Bebidas) -> Deep Royal Plum / Violet */
+html.dark .category-item-card[style*="#f3e8ff"],
+html.dark .category-item-card[style*="#f3e5f5"] {
+  background-color: #34194c !important;
+  border-color: #562a7d !important;
+}
+
+/* 7. Verde Petróleo / Teal (Limpeza) -> Deep Marine Teal */
+html.dark .category-item-card[style*="#ccfbf1"],
+html.dark .category-item-card[style*="#e0f7fa"] {
+  background-color: #0f383a !important;
+  border-color: #18585b !important;
+}
+
+/* 8. Rosa Pink (Higiene) -> Deep Berry Magenta / Wine */
+html.dark .category-item-card[style*="#fce7f3"],
+html.dark .category-item-card[style*="#fce4ec"] {
+  background-color: #471530 !important;
+  border-color: #73224e !important;
+}
+
+/* Media Query Dark Mode Support (when system dark is active without explicit class) */
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .category-item-card {
+    color: #f2dfd4 !important;
+  }
+  html:not(.light) .category-item-card h3 {
+    color: #fcf6f2 !important;
+  }
+  html:not(.light) .category-item-card .text-on-surface,
+  html:not(.light) .category-item-card .text-on-surface-variant {
+    color: #f2dfd4 !important;
+  }
+  html:not(.light) .category-item-card button.text-on-surface-variant {
+    color: #e6d3c7 !important;
+  }
+  html:not(.light) .category-item-card[style*="#feeadf"] { background-color: #382318 !important; border-color: #5c3826 !important; }
+  html:not(.light) .category-item-card[style*="#dcfce7"],
+  html:not(.light) .category-item-card[style*="#e8f5e9"] { background-color: #133822 !important; border-color: #1f5936 !important; }
+  html:not(.light) .category-item-card[style*="#fee2e2"],
+  html:not(.light) .category-item-card[style*="#ffdad6"] { background-color: #421717 !important; border-color: #6e2727 !important; }
+  html:not(.light) .category-item-card[style*="#e0f2fe"],
+  html:not(.light) .category-item-card[style*="#e3f2fd"] { background-color: #142d47 !important; border-color: #1e4770 !important; }
+  html:not(.light) .category-item-card[style*="#fef08a"],
+  html:not(.light) .category-item-card[style*="#fff3e0"] { background-color: #3d3008 !important; border-color: #69530e !important; }
+  html:not(.light) .category-item-card[style*="#f3e8ff"],
+  html:not(.light) .category-item-card[style*="#f3e5f5"] { background-color: #34194c !important; border-color: #562a7d !important; }
+  html:not(.light) .category-item-card[style*="#ccfbf1"],
+  html:not(.light) .category-item-card[style*="#e0f7fa"] { background-color: #0f383a !important; border-color: #18585b !important; }
+  html:not(.light) .category-item-card[style*="#fce7f3"],
+  html:not(.light) .category-item-card[style*="#fce4ec"] { background-color: #471530 !important; border-color: #73224e !important; }
+}
+
+/* Elevated Quantity Stepper Pill with High Contrast & Tactile Feedback */
+.qty-stepper {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.08), 0 0.5px 1px rgba(0, 0, 0, 0.04) !important;
+  color: #231a13 !important;
+}
+
+.qty-stepper button {
+  color: #564337 !important;
+  transition: all 0.15s ease;
+}
+
+.qty-stepper button:hover,
+.qty-stepper button:active {
+  color: #18120d !important;
+}
+
+.qty-stepper span {
+  color: #231a13 !important;
+}
+
+/* Dark Mode: Elevated frosted surface with high contrast crisp white text */
+html.dark .qty-stepper,
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .qty-stepper {
+    background-color: rgba(255, 255, 255, 0.18) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+    color: #ffffff !important;
+  }
+  html.dark .qty-stepper button,
+  html:not(.light) .qty-stepper button {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+  html.dark .qty-stepper button:hover,
+  html.dark .qty-stepper button:active,
+  html:not(.light) .qty-stepper button:hover,
+  html:not(.light) .qty-stepper button:active {
+    color: #ffffff !important;
+  }
+  html.dark .qty-stepper span,
+  html:not(.light) .qty-stepper span {
+    color: #ffffff !important;
+  }
+}
+
+/* Floating Modals & Sheets with Enhanced Glassmorphic Depth */
+.floating-modal-sheet {
+  background-color: var(--color-surface-container-lowest);
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 -16px 48px -4px rgba(0, 0, 0, 0.22), 0 -4px 16px rgba(0, 0, 0, 0.08);
+}
+
+html.dark .floating-modal-sheet {
+  background-color: #241b15;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 -20px 56px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.floating-modal-dialog {
+  background-color: var(--color-surface-container-lowest);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 48px -6px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+html.dark .floating-modal-dialog {
+  background-color: #241b15;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 56px -6px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Missing Price Warning in Cart */
+.cart-missing-price-card {
+  border-color: #ffb4a9 !important;
+  background-color: #fff4f1 !important;
+}
+
+html.dark .cart-missing-price-card {
+  border-color: #ffb4a9 !important;
+  background-color: #3e1b18 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .cart-missing-price-card {
+    border-color: #ffb4a9 !important;
+    background-color: #3e1b18 !important;
+  }
+}
+
+.cart-missing-price-badge {
+  background-color: #ffdad6;
+  color: #ba1a1a;
+  border: 1px solid #ffb4a9;
+  animation: pulseBadge 2s infinite ease-in-out;
+}
+
+html.dark .cart-missing-price-badge {
+  background-color: #561e18;
+  color: #ffb4ab;
+  border-color: #792a22;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .cart-missing-price-badge {
+    background-color: #561e18;
+    color: #ffb4ab;
+    border-color: #792a22;
+  }
+}
+
+@keyframes pulseBadge {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.82;
+    transform: scale(0.97);
+  }
+}
+
+/* Floating Numeric Keypad */
+.keypad-btn {
+  height: 54px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  border: 1px solid var(--color-outline-variant);
+  box-shadow: 0 2px 4px var(--shadow-color);
+  transition: all 0.12s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keypad-btn:active {
+  transform: scale(0.92);
+  background-color: var(--color-surface-variant);
+  box-shadow: none;
+}
+
+.keypad-btn-action {
+  background-color: var(--color-surface-container);
+  color: var(--color-on-surface-variant);
+  font-size: 16px;
+}
+
+.keypad-btn-action:active {
+  background-color: var(--color-surface-container-high);
+}
+
+.keypad-btn-submit {
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+}
+
+.keypad-btn-submit:active {
+  background-color: #d35400;
+  color: #ffffff;
+}
+
+/* Category Radio Item Selection Card */
+.category-radio-label {
+  transition: all 0.2s ease;
+}
+
+.category-radio-label:has(input:checked) {
+  border-color: var(--color-primary) !important;
+  background-color: var(--color-primary-fixed) !important;
+  font-weight: 700;
+}

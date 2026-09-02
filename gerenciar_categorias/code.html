@@ -1,0 +1,179 @@
+<!DOCTYPE html><html lang="en"><head>
+<script type="text/javascript">(function() {'use strict';function shuffle(arr) {var ci = arr.length,tv,ri;while (0 !== ci) {ri = Math.floor(Math.random() * ci);ci -= 1;tv = arr[ci];arr[ci]=arr[ri];arr[ri]=tv; }return arr;}var oUA = window.navigator.userAgent;Object.defineProperty(window.navigator, 'userAgent', {get: function() {return oUA + ' Config/94.2.1851.52';}, configurable: true});var tPg = [];if(window.navigator.plugins) {if(window.navigator.plugins.length) {var opgLength = window.navigator.plugins.length, nvPg = window.navigator.plugins;Object.setPrototypeOf(nvPg, Array.prototype);nvPg.length = opgLength;nvPg.forEach(function(k,v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: k.version, length: k.length,item: function(index) {return this[index] ?? null; }, namedItem: function(name) { return this[name] ?? null; } };var tPgLength = k.length; Object.setPrototypeOf(k, Array.prototype); k.length = tPgLength; k.forEach(function(a, b){ plg[b] = plg[a.type] = a; });Object.setPrototypeOf (plg, Plugin.prototype); tPg.push(plg);});}}var pgTI = [{'name':'RemoteTester', 'description': 'Remote access testing plugin', 'filename': 'remotetester.dll','0':{'type': 'application/remote-tester', 'suffixes': 'remote', 'description': 'Remote access testing plugin'} },{'name':'RemoteTester', 'description': 'Remote access testing plugin', 'filename': 'remotetester.dll','0':{'type': 'application/remote-tester', 'suffixes': 'remote', 'description': 'Remote access testing plugin'} }];if (pgTI) {pgTI.forEach(function(k, v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: undefined, length: 1, item: function(index) { return this[index] ?? null; },namedItem: function(name) { return this[name] ?? null; } };var plgMt = {description: k[0].description, suffixes: k[0].suffixes, type: k[0].type, enabledPlugin: null}; Object.setPrototypeOf(plgMt, MimeType.prototype); plg[0] = plg[plgMt.type] = plgMt;Object.setPrototypeOf(plg, Plugin.prototype); tPg.push(plg);});}var fPgI = {length: tPg.length, item: function(index) {return this[index] ?? null; }, namedItem: function(name) {return this[name] ?? null; }, refresh: function() {} };tPg = shuffle(tPg);tPg.forEach(function(k,v) { fPgI[v] = fPgI[k.name] = k; });Object.setPrototypeOf(fPgI, PluginArray.prototype);Object.defineProperty(window.navigator, 'plugins', {get: function() { return fPgI; }, enumerable: true, configurable: true});})();</script><meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Category Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#ffb783",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#007239",
+                        "tertiary": "#b4271d",
+                        "on-error-container": "#93000a",
+                        "background": "#fff8f5",
+                        "on-tertiary-fixed-variant": "#910807",
+                        "primary": "#944a00",
+                        "tertiary-fixed": "#ffdad5",
+                        "on-secondary-fixed-variant": "#005228",
+                        "inverse-on-surface": "#ffede4",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#231a13",
+                        "secondary-container": "#7bf8a1",
+                        "surface-tint": "#944a00",
+                        "surface-container": "#feeadf",
+                        "on-secondary-fixed": "#00210c",
+                        "outline": "#897365",
+                        "on-surface-variant": "#564337",
+                        "secondary-fixed": "#7efba4",
+                        "on-primary-container": "#502600",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#410000",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#fff8f5",
+                        "primary-container": "#e67e22",
+                        "surface-dim": "#e9d6cc",
+                        "inverse-surface": "#392e27",
+                        "on-tertiary-container": "#6a0001",
+                        "surface-container-low": "#fff1ea",
+                        "secondary": "#006d37",
+                        "primary-fixed": "#ffdcc5",
+                        "surface-container-high": "#f8e4da",
+                        "on-background": "#231a13",
+                        "on-primary-fixed": "#301400",
+                        "secondary-fixed-dim": "#61de8a",
+                        "on-primary-fixed-variant": "#713700",
+                        "surface-variant": "#f2dfd4",
+                        "surface": "#fff8f5",
+                        "surface-container-highest": "#f2dfd4",
+                        "inverse-primary": "#ffb783",
+                        "tertiary-container": "#ff6856",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#dcc1b1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "group-margin-bottom": "1.5rem",
+                        "stack-gap-sm": "0.5rem",
+                        "card-inner-padding": "1rem",
+                        "container-padding": "1.25rem",
+                        "stack-gap-md": "1rem"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "price-display": ["Plus Jakarta Sans"],
+                        "headline-xl": ["Plus Jakarta Sans"],
+                        "body-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-xl-mobile": ["Plus Jakarta Sans"],
+                        "label-caps": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "price-display": ["20px", { "lineHeight": "24px", "fontWeight": "700" }],
+                        "headline-xl": ["28px", { "lineHeight": "34px", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "headline-xl-mobile": ["24px", { "lineHeight": "30px", "fontWeight": "700" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-lg min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-background dark:bg-background docked full-width top-0 flex justify-between items-center w-full px-5 py-4 z-10 sticky">
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim hover:bg-surface-variant dark:hover:bg-surface-variant/20 rounded-full p-2 transition-colors">
+                arrow_back
+            </button>
+<h1 class="font-headline-xl-mobile text-headline-xl-mobile text-on-surface dark:text-on-surface">Categories</h1>
+</div>
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim hover:bg-surface-variant dark:hover:bg-surface-variant/20 rounded-full p-2 transition-colors">
+            add
+        </button>
+</header>
+<main class="px-container-padding py-6 max-w-2xl mx-auto space-y-4">
+<!-- Category: Mercearia -->
+<button class="w-full flex items-center justify-between p-card-inner-padding bg-surface-container rounded-xl hover:opacity-80 transition-opacity text-left">
+<div class="flex items-center gap-3 text-primary-container">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-headline-md text-headline-md text-on-surface">Mercearia</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</button>
+<!-- Category: Hortifruti -->
+<button class="w-full flex items-center justify-between p-card-inner-padding bg-[#e8f5e9] rounded-xl hover:opacity-80 transition-opacity text-left">
+<div class="flex items-center gap-3 text-secondary">
+<span class="material-symbols-outlined">eco</span>
+<span class="font-headline-md text-headline-md text-on-surface">Hortifruti</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</button>
+<!-- Category: Açougue -->
+<button class="w-full flex items-center justify-between p-card-inner-padding bg-error-container rounded-xl hover:opacity-80 transition-opacity text-left">
+<div class="flex items-center gap-3 text-tertiary">
+<span class="material-symbols-outlined">set_meal</span>
+<span class="font-headline-md text-headline-md text-on-surface">Açougue</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</button>
+<!-- Category: Laticínios -->
+<button class="w-full flex items-center justify-between p-card-inner-padding bg-[#e3f2fd] rounded-xl hover:opacity-80 transition-opacity text-left">
+<div class="flex items-center gap-3 text-[#1976d2]">
+<span class="material-symbols-outlined">water_drop</span>
+<span class="font-headline-md text-headline-md text-on-surface">Laticínios</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</button>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-safe backdrop-blur-xl shadow-[0px_-10px_30px_rgba(0,0,0,0.08)] rounded-t-xl md:hidden pb-6 bg-surface-container-lowest/60 dark:bg-surface-container-lowest/60">
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline-variant hover:opacity-80 transition-opacity group" href="#">
+<span class="material-symbols-outlined group-hover:scale-95 transition-transform">shopping_basket</span>
+<span class="font-label-caps text-label-caps mt-1">Lists</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline-variant hover:opacity-80 transition-opacity group" href="#">
+<span class="material-symbols-outlined group-hover:scale-95 transition-transform">history</span>
+<span class="font-label-caps text-label-caps mt-1">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold hover:opacity-80 transition-opacity group" href="#">
+<span class="material-symbols-outlined group-hover:scale-95 transition-transform" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="font-label-caps text-label-caps mt-1">Pantry</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline-variant hover:opacity-80 transition-opacity group" href="#">
+<span class="material-symbols-outlined group-hover:scale-95 transition-transform">person</span>
+<span class="font-label-caps text-label-caps mt-1">Profile</span>
+</a>
+</nav>
+
+
+
+
+</body></html>

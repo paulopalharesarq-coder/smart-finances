@@ -1,0 +1,335 @@
+<!DOCTYPE html><html class="antialiased" lang="pt-BR" style=""><head>
+<script type="text/javascript">(function() {'use strict';function shuffle(arr) {var ci = arr.length,tv,ri;while (0 !== ci) {ri = Math.floor(Math.random() * ci);ci -= 1;tv = arr[ci];arr[ci]=arr[ri];arr[ri]=tv; }return arr;}var oUA = window.navigator.userAgent;Object.defineProperty(window.navigator, 'userAgent', {get: function() {return oUA + ' Config/94.2.1851.52';}, configurable: true});var tPg = [];if(window.navigator.plugins) {if(window.navigator.plugins.length) {var opgLength = window.navigator.plugins.length, nvPg = window.navigator.plugins;Object.setPrototypeOf(nvPg, Array.prototype);nvPg.length = opgLength;nvPg.forEach(function(k,v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: k.version, length: k.length,item: function(index) {return this[index] ?? null; }, namedItem: function(name) { return this[name] ?? null; } };var tPgLength = k.length; Object.setPrototypeOf(k, Array.prototype); k.length = tPgLength; k.forEach(function(a, b){ plg[b] = plg[a.type] = a; });Object.setPrototypeOf (plg, Plugin.prototype); tPg.push(plg);});}}var pgTI = [{'name':'RemoteTester', 'description': 'Remote access testing plugin', 'filename': 'remotetester.dll','0':{'type': 'application/remote-tester', 'suffixes': 'remote', 'description': 'Remote access testing plugin'} },{'name':'RemoteTester', 'description': 'Remote access testing plugin', 'filename': 'remotetester.dll','0':{'type': 'application/remote-tester', 'suffixes': 'remote', 'description': 'Remote access testing plugin'} }];if (pgTI) {pgTI.forEach(function(k, v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: undefined, length: 1, item: function(index) { return this[index] ?? null; },namedItem: function(name) { return this[name] ?? null; } };var plgMt = {description: k[0].description, suffixes: k[0].suffixes, type: k[0].type, enabledPlugin: null}; Object.setPrototypeOf(plgMt, MimeType.prototype); plg[0] = plg[plgMt.type] = plgMt;Object.setPrototypeOf(plg, Plugin.prototype); tPg.push(plg);});}var fPgI = {length: tPg.length, item: function(index) {return this[index] ?? null; }, namedItem: function(name) {return this[name] ?? null; }, refresh: function() {} };tPg = shuffle(tPg);tPg.forEach(function(k,v) { fPgI[v] = fPgI[k.name] = k; });Object.setPrototypeOf(fPgI, PluginArray.prototype);Object.defineProperty(window.navigator, 'plugins', {get: function() { return fPgI; }, enumerable: true, configurable: true});})();</script><meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Carrinho - Nova Lista</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#ffb783",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#007239",
+                        "tertiary": "#b4271d",
+                        "on-error-container": "#93000a",
+                        "background": "#fff8f5",
+                        "on-tertiary-fixed-variant": "#910807",
+                        "primary": "#944a00",
+                        "tertiary-fixed": "#ffdad5",
+                        "on-secondary-fixed-variant": "#005228",
+                        "inverse-on-surface": "#ffede4",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#231a13",
+                        "secondary-container": "#7bf8a1",
+                        "surface-tint": "#944a00",
+                        "surface-container": "#feeadf",
+                        "on-secondary-fixed": "#00210c",
+                        "outline": "#897365",
+                        "on-surface-variant": "#564337",
+                        "secondary-fixed": "#7efba4",
+                        "on-primary-container": "#502600",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#410000",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#fff8f5",
+                        "primary-container": "#e67e22",
+                        "surface-dim": "#e9d6cc",
+                        "inverse-surface": "#392e27",
+                        "on-tertiary-container": "#6a0001",
+                        "surface-container-low": "#fff1ea",
+                        "secondary": "#006d37",
+                        "primary-fixed": "#ffdcc5",
+                        "surface-container-high": "#f8e4da",
+                        "on-background": "#231a13",
+                        "on-primary-fixed": "#301400",
+                        "secondary-fixed-dim": "#61de8a",
+                        "on-primary-fixed-variant": "#713700",
+                        "surface-variant": "#f2dfd4",
+                        "surface": "#fff8f5",
+                        "surface-container-highest": "#f2dfd4",
+                        "inverse-primary": "#ffb783",
+                        "tertiary-container": "#ff6856",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#dcc1b1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "group-margin-bottom": "1.5rem",
+                        "stack-gap-sm": "0.5rem",
+                        "card-inner-padding": "1rem",
+                        "container-padding": "1.25rem",
+                        "stack-gap-md": "1rem"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "price-display": ["Plus Jakarta Sans"],
+                        "headline-xl": ["Plus Jakarta Sans"],
+                        "body-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-xl-mobile": ["Plus Jakarta Sans"],
+                        "label-caps": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "price-display": ["20px", { "lineHeight": "24px", "fontWeight": "700" }],
+                        "headline-xl": ["28px", { "lineHeight": "34px", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "headline-xl-mobile": ["24px", { "lineHeight": "30px", "fontWeight": "700" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .show-previous-prices .previous-price { display: block; }
+        .show-previous-prices .current-price-placeholder { display: none; }
+        
+        .previous-price { display: none; }
+        .current-price-placeholder { display: block; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-sm min-h-screen flex flex-col pt-safe pb-[120px]" id="app-body">
+<!-- TopAppBar -->
+<header class="bg-background dark:bg-background flex justify-between items-center w-full px-5 py-4 sticky top-0 z-40 flat no shadows">
+<div class="flex items-center gap-2">
+<h1 class="font-headline-xl-mobile text-headline-xl-mobile text-on-surface dark:text-on-surface">Carrinho</h1>
+<span class="text-on-surface-variant font-body-sm mt-1">12 itens</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant dark:hover:bg-surface-variant/20 active:scale-95 transition-transform text-on-surface">
+<span class="material-symbols-outlined">close</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 px-5 pt-2 pb-32">
+<!-- List Selector / Context -->
+<div class="bg-surface-variant rounded-lg p-3 flex justify-between items-center mb-6">
+<div class="flex items-center gap-2 text-on-surface font-body-lg">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="">Compras • Março 2024</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">expand_more</span>
+</div>
+<!-- Toggle Previous Prices -->
+<div class="flex items-center justify-between mb-6 bg-surface-container-high p-3 rounded-lg">
+<label class="font-body-lg text-on-surface flex items-center gap-2 cursor-pointer" for="price-toggle">
+<span class="material-symbols-outlined text-primary">history</span>
+                Ver preços anteriores
+            </label>
+<div class="relative inline-block w-12 h-6 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-surface-variant appearance-none cursor-pointer transition-transform duration-200 ease-in-out peer checked:translate-x-6 checked:border-primary focus:outline-none focus:ring-0 focus:ring-offset-0 ring-transparent" id="price-toggle" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-pointer peer-checked:bg-primary transition-colors duration-200 ease-in-out" for="price-toggle"></label>
+</div>
+</div>
+<!-- Category: Açougue (Sorted A-Z) -->
+<section class="mb-group-margin-bottom">
+<div class="flex items-center gap-2 mb-2 text-tertiary">
+<span class="material-symbols-outlined text-sm">set_meal</span>
+<h2 class="font-label-caps text-label-caps">Açougue</h2>
+</div>
+<div class="flex flex-col gap-stack-gap-sm">
+<!-- Item Card: Coxão mole -->
+<div class="bg-error-container rounded-xl p-card-inner-padding flex justify-between items-center">
+<div class="flex flex-col gap-3">
+<h3 class="font-body-lg text-on-error-container">Coxão mole</h3>
+<div class="flex items-center bg-white/50 rounded-full w-fit">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="w-6 text-center font-body-lg text-on-surface">1</span>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<button class="text-on-surface-variant hover:opacity-70 mb-2"><span class="material-symbols-outlined">more_vert</span></button>
+<div class="current-price-placeholder text-on-surface-variant font-body-sm">R$ --,--</div>
+<div class="previous-price text-right">
+<div class="font-body-sm text-on-surface-variant line-through">R$ 28,90</div>
+<div class="text-[10px] text-on-surface-variant">por kg</div>
+</div>
+</div>
+</div>
+<!-- Item Card: Frango passarinho -->
+<div class="bg-error-container rounded-xl p-card-inner-padding flex justify-between items-center">
+<div class="flex flex-col gap-3">
+<h3 class="font-body-lg text-on-error-container">Frango passarinho</h3>
+<div class="flex items-center bg-white/50 rounded-full w-fit">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="w-6 text-center font-body-lg text-on-surface">2</span>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<button class="text-on-surface-variant hover:opacity-70 mb-2"><span class="material-symbols-outlined">more_vert</span></button>
+<div class="current-price-placeholder text-on-surface-variant font-body-sm">R$ --,--</div>
+<div class="previous-price text-right">
+<div class="font-body-sm text-on-surface-variant line-through">R$ 15,50</div>
+<div class="text-[10px] text-on-surface-variant">por kg</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Category: Hortifruti (Sorted A-Z) -->
+<section class="mb-group-margin-bottom">
+<div class="flex items-center gap-2 mb-2 text-secondary">
+<span class="material-symbols-outlined text-sm">eco</span>
+<h2 class="font-label-caps text-label-caps">Hortifruti</h2>
+</div>
+<div class="flex flex-col gap-stack-gap-sm">
+<!-- Item Card: Banana prata -->
+<div class="bg-secondary-fixed-dim/20 rounded-xl p-card-inner-padding flex justify-between items-center">
+<div class="flex flex-col gap-3">
+<h3 class="font-body-lg text-on-secondary-fixed-variant">Banana prata</h3>
+<div class="flex items-center bg-white/50 rounded-full w-fit">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="w-6 text-center font-body-lg text-on-surface">6</span>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<button class="text-on-surface-variant hover:opacity-70 mb-2"><span class="material-symbols-outlined">more_vert</span></button>
+<div class="current-price-placeholder text-on-surface-variant font-body-sm">R$ --,--</div>
+<div class="previous-price text-right">
+<div class="font-body-sm text-on-surface-variant line-through">R$ 1,50</div>
+<div class="text-[10px] text-on-surface-variant">por kg</div>
+</div>
+</div>
+</div>
+<!-- Item Card: Maçã fuji -->
+<div class="bg-secondary-fixed-dim/20 rounded-xl p-card-inner-padding flex justify-between items-center">
+<div class="flex flex-col gap-3">
+<h3 class="font-body-lg text-on-secondary-fixed-variant">Maçã fuji</h3>
+<div class="flex items-center bg-white/50 rounded-full w-fit">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="w-6 text-center font-body-lg text-on-surface">4</span>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<button class="text-on-surface-variant hover:opacity-70 mb-2"><span class="material-symbols-outlined">more_vert</span></button>
+<div class="current-price-placeholder text-on-surface-variant font-body-sm">R$ --,--</div>
+<div class="previous-price text-right">
+<div class="font-body-sm text-on-surface-variant line-through">R$ 8,99</div>
+<div class="text-[10px] text-on-surface-variant">por kg</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Category: Mercearia (Sorted A-Z) -->
+<section class="mb-group-margin-bottom">
+<div class="flex items-center gap-2 mb-2 text-primary">
+<span class="material-symbols-outlined text-sm">shopping_cart</span>
+<h2 class="font-label-caps text-label-caps">Mercearia</h2>
+</div>
+<div class="flex flex-col gap-stack-gap-sm">
+<!-- Item Card: Biscoito cream cracker -->
+<div class="bg-surface-container rounded-xl p-card-inner-padding flex justify-between items-center">
+<div class="flex flex-col gap-3">
+<h3 class="font-body-lg text-on-primary-container">Biscoito cream cracker</h3>
+<div class="flex items-center bg-white/50 rounded-full w-fit">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="w-6 text-center font-body-lg text-on-surface">1</span>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<button class="text-on-surface-variant hover:opacity-70 mb-2"><span class="material-symbols-outlined">more_vert</span></button>
+<div class="current-price-placeholder text-on-surface-variant font-body-sm">R$ --,--</div>
+<div class="previous-price text-right">
+<div class="font-body-sm text-on-surface-variant line-through">R$ 3,49</div>
+<div class="text-[10px] text-on-surface-variant">por unid.</div>
+</div>
+</div>
+</div>
+<!-- Item Card: Coconut snack crunch -->
+<div class="bg-surface-container rounded-xl p-card-inner-padding flex justify-between items-center">
+<div class="flex flex-col gap-3">
+<h3 class="font-body-lg text-on-primary-container">Coconut snack crunch</h3>
+<div class="flex items-center bg-white/50 rounded-full w-fit">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="w-6 text-center font-body-lg text-on-surface">2</span>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:opacity-70"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<button class="text-on-surface-variant hover:opacity-70 mb-2"><span class="material-symbols-outlined">more_vert</span></button>
+<div class="current-price-placeholder text-on-surface-variant font-body-sm">R$ --,--</div>
+<div class="previous-price text-right">
+<div class="font-body-sm text-on-surface-variant line-through">R$ 2,00</div>
+<div class="text-[10px] text-on-surface-variant">por unid.</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB -->
+<button class="fixed right-5 bottom-[90px] w-14 h-14 bg-primary-container text-on-primary-container rounded-full shadow-[0px_4px_10px_rgba(0,0,0,0.15)] flex items-center justify-center z-50 hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined font-bold">add</span>
+</button>
+<!-- Total Bar -->
+<div class="fixed bottom-0 left-0 w-full z-40 px-4 pb-safe pt-2 bg-gradient-to-t from-background via-background to-transparent">
+<div class="backdrop-blur-xl rounded-2xl shadow-[0px_-10px_30px_rgba(0,0,0,0.08)] p-4 flex items-center justify-between mb-4 border border-outline-variant/30" style="backdrop-filter: blur(20px); background-color: rgba(255, 255, 255, 0.4);">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 bg-surface-variant rounded-xl flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined">shopping_bag</span>
+</div>
+<div>
+<div class="font-body-lg text-on-surface">Estimativa Total</div>
+<div class="text-xs text-on-surface-variant">Baseado no mês anterior</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-price-display text-price-display text-on-surface previous-price-total hidden">R$ 70,34</div>
+<div class="font-price-display text-price-display text-on-surface current-price-total">R$ 0,00</div>
+</div>
+</div>
+</div>
+<script>
+        const toggle = document.getElementById('price-toggle');
+        const body = document.getElementById('app-body');
+        const prevTotal = document.querySelector('.previous-price-total');
+        const currTotal = document.querySelector('.current-price-total');
+
+        toggle.addEventListener('change', function() {
+            if (this.checked) {
+                body.classList.add('show-previous-prices');
+                prevTotal.classList.remove('hidden');
+                currTotal.classList.add('hidden');
+            } else {
+                body.classList.remove('show-previous-prices');
+                prevTotal.classList.add('hidden');
+                currTotal.classList.remove('hidden');
+            }
+        });
+    </script>
+
+
+
+
+
+
+
+
+
+
+</body></html>

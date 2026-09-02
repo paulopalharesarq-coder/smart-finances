@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Full-bleed continuous cream gradient -->
+    <linearGradient id="bgGradFull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fdf7f0"/>
+      <stop offset="100%" stop-color="#f4e3d2"/>
+    </linearGradient>
+
+    <!-- Vibrant 3D orange gradient -->
+    <linearGradient id="vibrantOrange" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff9233"/>
+      <stop offset="100%" stop-color="#e65100"/>
+    </linearGradient>
+
+    <!-- 3D wheel gradient -->
+    <linearGradient id="wheelGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffa34d"/>
+      <stop offset="100%" stop-color="#d35400"/>
+    </linearGradient>
+
+    <!-- Crisp cream basket fill -->
+    <linearGradient id="creamBasket" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#fbf1e8"/>
+    </linearGradient>
+
+    <!-- Soft drop shadow filter -->
+    <filter id="cartDepthShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#803800" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Full-bleed background with zero borders or frames -->
+  <rect width="512" height="512" fill="url(#bgGradFull)"/>
+
+  <!-- Cart Shadow & Assembly -->
+  <g filter="url(#cartDepthShadow)">
+    <!-- 3D Wheels -->
+    <circle cx="200" cy="388" r="36" fill="url(#wheelGrad)"/>
+    <circle cx="200" cy="388" r="14" fill="#ffebd9" opacity="0.8"/>
+    <circle cx="355" cy="388" r="36" fill="url(#wheelGrad)"/>
+    <circle cx="355" cy="388" r="14" fill="#ffebd9" opacity="0.8"/>
+
+    <!-- Vibrant Orange 3D Lower Base -->
+    <path d="M 120 150 L 145 150 L 180 275 L 205 335 L 375 335 L 420 175" 
+          fill="none" 
+          stroke="url(#vibrantOrange)" 
+          stroke-width="32" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+
+    <!-- 3D Cream Basket Body -->
+    <polygon points="175,175 415,175 385,310 220,310" fill="url(#creamBasket)"/>
+
+    <!-- Crisp White Upper Rim & Frame -->
+    <path d="M 105 150 L 145 150 L 175 230 L 220 310 L 385 310 L 420 175 L 170 175" 
+          fill="none" 
+          stroke="#ffffff" 
+          stroke-width="24" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+          
+    <circle cx="105" cy="150" r="14" fill="#ffffff"/>
+  </g>
+</svg>
