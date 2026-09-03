@@ -63,6 +63,12 @@ window.openNotificationCenterModal = function () {
     }
   }
 
+  const isBackupDue = (window.NotificationService && typeof window.NotificationService.isBackupReminderDue === 'function')
+    ? window.NotificationService.isBackupReminderDue()
+    : false;
+
+  const hasAnyNotification = upcomingItems.length > 0 || isBackupDue;
+
   const fmtCurrency = (val) => Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   container.innerHTML = `
@@ -84,33 +90,57 @@ window.openNotificationCenterModal = function () {
 
         <!-- Body -->
         <div class="overflow-y-auto space-y-3 max-h-[60vh] pr-0.5">
-          ${upcomingItems.length > 0 ? `
-            <p class="text-xs text-on-surface-variant font-medium">Você possui as seguintes despesas pendentes:</p>
-            ${upcomingItems.map(item => {
-              const cat = store.getCategoryById(item.expense.categoryId);
-              return `
-                <div onclick="window.financeStore.openMonthDetail('${item.expense.monthKey}'); window.closeModal();" 
-                     class="p-3.5 rounded-2xl bg-surface-container/70 dark:bg-white/5 border border-outline-variant/30 hover:border-primary/50 transition-all flex items-center justify-between gap-3 cursor-pointer group active:scale-[0.99]">
-                  <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style="background-color: ${cat.bgColor}; color: ${cat.textColor}">
-                      <span class="material-symbols-outlined text-[18px]">${cat.icon}</span>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <h4 class="font-bold text-xs text-on-surface truncate group-hover:text-primary transition-colors">${item.expense.name}</h4>
-                      <div class="flex items-center gap-2 mt-0.5">
-                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${item.color}">${item.label}</span>
-                        <span class="text-[10px] text-on-surface-variant font-medium truncate">${item.expense.payee || cat.name}</span>
+          ${hasAnyNotification ? `
+            ${upcomingItems.length > 0 ? `
+              <p class="text-xs text-on-surface-variant font-medium">Você possui as seguintes despesas pendentes:</p>
+              ${upcomingItems.map(item => {
+                const cat = store.getCategoryById(item.expense.categoryId);
+                return `
+                  <div onclick="window.financeStore.openMonthDetail('${item.expense.monthKey}'); window.closeModal();" 
+                       class="p-3.5 rounded-2xl bg-surface-container/70 dark:bg-white/5 border border-outline-variant/30 hover:border-primary/50 transition-all flex items-center justify-between gap-3 cursor-pointer group active:scale-[0.99]">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style="background-color: ${cat.bgColor}; color: ${cat.textColor}">
+                        <span class="material-symbols-outlined text-[18px]">${cat.icon}</span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <h4 class="font-bold text-xs text-on-surface truncate group-hover:text-primary transition-colors">${item.expense.name}</h4>
+                        <div class="flex items-center gap-2 mt-0.5">
+                          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${item.color}">${item.label}</span>
+                          <span class="text-[10px] text-on-surface-variant font-medium truncate">${item.expense.payee || cat.name}</span>
+                        </div>
                       </div>
                     </div>
+                    <div class="text-right shrink-0">
+                      <span class="font-price-display text-sm font-extrabold text-on-surface block leading-tight">
+                        ${fmtCurrency(item.expense.amount)}
+                      </span>
+                    </div>
                   </div>
-                  <div class="text-right shrink-0">
-                    <span class="font-price-display text-sm font-extrabold text-on-surface block leading-tight">
-                      ${fmtCurrency(item.expense.amount)}
-                    </span>
+                `;
+              }).join('')}
+            ` : ''}
+
+            ${isBackupDue ? `
+              <div class="p-3.5 rounded-2xl bg-secondary/10 dark:bg-secondary/20 border border-secondary/30 flex flex-col gap-2.5">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-secondary text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">cloud_sync</span>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-xs text-on-surface truncate">Lembrete de Backup Semanal</h4>
+                    <p class="text-[11px] text-on-surface-variant dark:text-[#d7c3b5] leading-tight mt-0.5">Proteja seu histórico financeiro criando uma cópia de segurança regular.</p>
                   </div>
                 </div>
-              `;
-            }).join('')}
+                <div class="flex items-center justify-end gap-2 pt-1 border-t border-secondary/20">
+                  <button type="button" 
+                          onclick="if (window.NotificationService) window.NotificationService.triggerDirectBackup();" 
+                          class="px-3.5 py-1.5 bg-secondary text-white font-bold text-xs rounded-xl shadow-sm hover:opacity-95 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[15px]">download</span>
+                    <span>Fazer backup</span>
+                  </button>
+                </div>
+              </div>
+            ` : ''}
           ` : `
             <!-- Empty State -->
             <div class="py-8 px-4 text-center flex flex-col items-center justify-center gap-2.5">
@@ -120,7 +150,7 @@ window.openNotificationCenterModal = function () {
               <div>
                 <h4 class="font-bold text-sm text-on-surface">Nenhuma notificação</h4>
                 <p class="text-xs text-on-surface-variant mt-1 leading-relaxed max-w-[260px] mx-auto">
-                  Você não possui despesas pendentes com vencimento para hoje ou amanhã.
+                  Tudo em dia! Você não possui despesas pendentes para hoje ou amanhã e seu backup está atualizado.
                 </p>
               </div>
               <button type="button" onclick="window.closeModal()" class="mt-2 px-5 py-2.5 bg-surface-container hover:bg-surface-variant text-on-surface rounded-xl text-xs font-bold transition-all cursor-pointer">

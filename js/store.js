@@ -364,15 +364,7 @@ class FinanceStore {
     const currentKey = getCurrentMonthKey();
     const initialMonths = {};
     
-    // Create initial months
-    const pastMonthsKeys = [
-      getAdjacentMonthKey(currentKey, -1),
-      getAdjacentMonthKey(currentKey, -2),
-      getAdjacentMonthKey(currentKey, -3),
-      getAdjacentMonthKey(currentKey, -4),
-      getAdjacentMonthKey(currentKey, -5)
-    ];
-
+    // Create only the current month initially
     initialMonths[currentKey] = {
       key: currentKey,
       name: formatMonthName(currentKey),
@@ -383,94 +375,6 @@ class FinanceStore {
       closedAt: null,
       createdAt: new Date().toISOString()
     };
-
-    pastMonthsKeys.forEach(k => {
-      initialMonths[k] = {
-        key: k,
-        name: formatMonthName(k),
-        status: 'closed',
-        carriedBalance: 0,
-        carriedBalanceAccepted: false,
-        notes: '',
-        closedAt: `${k}-28T23:59:59.000Z`,
-        createdAt: `${k}-01T00:00:00.000Z`
-      };
-    });
-
-    // Seed realistic sample expenses matching reference proportions with single-amount model
-    const initialExpenses = [
-      {
-        id: 'seed-exp-1',
-        monthKey: currentKey,
-        name: 'Farmácia & Cuidados',
-        amount: 142.02,
-        dueDate: `${currentKey}-04`,
-        categoryId: 'saude',
-        payee: 'Drogaria São Paulo',
-        status: 'paid',
-        paymentMethod: 'credit',
-        notes: 'Medicamentos e vitaminas',
-        isRecurring: false,
-        paidAt: `${currentKey}-04T10:30:00.000Z`
-      },
-      {
-        id: 'seed-exp-2',
-        monthKey: currentKey,
-        name: 'Aluguel & Condomínio',
-        amount: 2000.00,
-        dueDate: `${currentKey}-10`,
-        categoryId: 'moradia',
-        payee: 'Imobiliária',
-        status: 'pending',
-        paymentMethod: 'boleto',
-        notes: 'Moradia mensal',
-        isRecurring: true
-      },
-      {
-        id: 'seed-exp-3',
-        monthKey: currentKey,
-        name: 'Supermercado & Feira',
-        amount: 857.98,
-        dueDate: `${currentKey}-18`,
-        categoryId: 'alimentacao',
-        payee: 'Supermercado Pão de Açúcar',
-        status: 'pending',
-        paymentMethod: 'credit',
-        notes: 'Compras do mês',
-        isRecurring: false
-      },
-
-      // Past Months:
-      { id: 'seed-p1-e', monthKey: pastMonthsKeys[0], name: 'Despesas Gerais de Julho', amount: 4000.00, dueDate: `${pastMonthsKeys[0]}-10`, categoryId: 'moradia', status: 'paid' },
-      { id: 'seed-p2-e', monthKey: pastMonthsKeys[1], name: 'Despesas Gerais de Junho', amount: 3800.00, dueDate: `${pastMonthsKeys[1]}-10`, categoryId: 'moradia', status: 'paid' },
-      { id: 'seed-p3-e', monthKey: pastMonthsKeys[2], name: 'Despesas Gerais de Maio', amount: 3900.00, dueDate: `${pastMonthsKeys[2]}-10`, categoryId: 'moradia', status: 'paid' },
-      { id: 'seed-p4-e', monthKey: pastMonthsKeys[3], name: 'Despesas Gerais de Abril', amount: 4120.40, dueDate: `${pastMonthsKeys[3]}-10`, categoryId: 'moradia', status: 'paid' },
-      { id: 'seed-p5-e', monthKey: pastMonthsKeys[4], name: 'Despesas Gerais de Março', amount: 3700.00, dueDate: `${pastMonthsKeys[4]}-10`, categoryId: 'moradia', status: 'paid' }
-    ];
-
-    // Seed realistic incomes
-    const initialIncomes = [
-      {
-        id: 'seed-inc-1',
-        monthKey: currentKey,
-        name: 'Salário Mensal',
-        amount: 2780.00,
-        expectedDate: `${currentKey}-05`,
-        receivedDate: `${currentKey}-05`,
-        categoryId: 'salario',
-        payer: 'Empresa',
-        status: 'received',
-        isRecurring: true,
-        receivedAt: `${currentKey}-05T08:00:00.000Z`
-      },
-
-      // Past Months:
-      { id: 'seed-p1-i', monthKey: pastMonthsKeys[0], name: 'Salário Julho', amount: 4305.00, expectedDate: `${pastMonthsKeys[0]}-05`, categoryId: 'salario', status: 'received' },
-      { id: 'seed-p2-i', monthKey: pastMonthsKeys[1], name: 'Salário Junho', amount: 3838.69, expectedDate: `${pastMonthsKeys[1]}-05`, categoryId: 'salario', status: 'received' },
-      { id: 'seed-p3-i', monthKey: pastMonthsKeys[2], name: 'Salário Maio', amount: 3976.50, expectedDate: `${pastMonthsKeys[2]}-05`, categoryId: 'salario', status: 'received' },
-      { id: 'seed-p4-i', monthKey: pastMonthsKeys[3], name: 'Salário Abril', amount: 4000.00, expectedDate: `${pastMonthsKeys[3]}-05`, categoryId: 'salario', status: 'received' },
-      { id: 'seed-p5-i', monthKey: pastMonthsKeys[4], name: 'Salário Março', amount: 3810.20, expectedDate: `${pastMonthsKeys[4]}-05`, categoryId: 'salario', status: 'received' }
-    ];
 
     return {
       activeTab: 'home',
@@ -490,8 +394,8 @@ class FinanceStore {
       themePreference: themePref,
       categories: [...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES],
       months: initialMonths,
-      expenses: initialExpenses,
-      incomes: initialIncomes,
+      expenses: [],
+      incomes: [],
       installmentPlans: [],
       recurringRules: [],
       payeesPayers: []
@@ -1314,6 +1218,130 @@ class FinanceStore {
       cardTone,
       totalExpensesCount: expenses.length,
       totalIncomesCount: incomes.length
+    };
+  }
+
+  // Reports & Analytics Aggregations
+  getReportsBreakdown({ type = 'expense', periodMode = 'month', monthKey = null, year = null, startDate = null, endDate = null, status = 'all' } = {}) {
+    const isExpense = type === 'expense';
+    const rawItems = isExpense ? (this.state.expenses || []) : (this.state.incomes || []);
+
+    const filteredItems = rawItems.filter(item => {
+      // 1. Filter by Status
+      if (status !== 'all') {
+        if (status === 'paid' || status === 'received') {
+          if (item.status !== 'paid' && item.status !== 'received') return false;
+        } else if (status === 'pending') {
+          if (item.status !== 'pending') return false;
+        }
+      }
+
+      // 2. Filter by Period Mode
+      const itemDate = isExpense 
+        ? (item.dueDate || (item.monthKey ? `${item.monthKey}-01` : ''))
+        : (item.expectedDate || item.receivedDate || (item.monthKey ? `${item.monthKey}-01` : ''));
+      const itemMonthKey = item.monthKey || (itemDate ? itemDate.slice(0, 7) : '');
+
+      if (periodMode === 'month') {
+        const targetMonth = monthKey || this.getCurrentMonthKey();
+        return itemMonthKey === targetMonth;
+      } else if (periodMode === 'year') {
+        const targetYear = String(year || new Date().getFullYear());
+        return itemMonthKey.startsWith(targetYear) || (itemDate && itemDate.startsWith(targetYear));
+      } else if (periodMode === 'custom') {
+        if (!startDate && !endDate) return true;
+        if (startDate && itemDate && itemDate < startDate) return false;
+        if (endDate && itemDate && itemDate > endDate) return false;
+        return true;
+      }
+      return true;
+    });
+
+    // 3. Aggregate by Category
+    const categoryMap = {};
+    let totalAmount = 0;
+
+    filteredItems.forEach(item => {
+      const catId = item.categoryId || (isExpense ? 'outras_despesas' : 'outras_receitas');
+      const val = Number(item.amount || item.plannedAmount || 0);
+      totalAmount += val;
+
+      if (!categoryMap[catId]) {
+        categoryMap[catId] = {
+          category: this.getCategoryById(catId),
+          total: 0,
+          count: 0
+        };
+      }
+      categoryMap[catId].total += val;
+      categoryMap[catId].count += 1;
+    });
+
+    const categories = Object.values(categoryMap).map(c => {
+      const pct = totalAmount > 0 ? (c.total / totalAmount) * 100 : 0;
+      return {
+        ...c,
+        percentage: pct
+      };
+    }).sort((a, b) => b.total - a.total);
+
+    return {
+      items: filteredItems,
+      totalAmount,
+      categories,
+      maxCategory: categories[0] || null,
+      totalCount: filteredItems.length
+    };
+  }
+
+  getMonthlyEvolution({ type = 'expense', year = null, status = 'all' } = {}) {
+    const targetYear = Number(year || new Date().getFullYear());
+    const isExpense = type === 'expense';
+    const rawItems = isExpense ? (this.state.expenses || []) : (this.state.incomes || []);
+    const monthsData = [];
+
+    const monthNamesShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const currentKey = this.getCurrentMonthKey();
+
+    for (let m = 1; m <= 12; m++) {
+      const monthStr = String(m).padStart(2, '0');
+      const monthKey = `${targetYear}-${monthStr}`;
+
+      const itemsInMonth = rawItems.filter(item => {
+        if (status !== 'all') {
+          if (status === 'paid' || status === 'received') {
+            if (item.status !== 'paid' && item.status !== 'received') return false;
+          } else if (status === 'pending') {
+            if (item.status !== 'pending') return false;
+          }
+        }
+        const itemDate = isExpense 
+          ? (item.dueDate || (item.monthKey ? `${item.monthKey}-01` : ''))
+          : (item.expectedDate || item.receivedDate || (item.monthKey ? `${item.monthKey}-01` : ''));
+        const itemMonthKey = item.monthKey || (itemDate ? itemDate.slice(0, 7) : '');
+        return itemMonthKey === monthKey;
+      });
+
+      const total = itemsInMonth.reduce((acc, item) => acc + Number(item.amount || item.plannedAmount || 0), 0);
+
+      monthsData.push({
+        monthIndex: m,
+        monthKey,
+        shortName: monthNamesShort[m - 1],
+        fullName: formatMonthName(monthKey),
+        total,
+        count: itemsInMonth.length,
+        isCurrent: monthKey === currentKey
+      });
+    }
+
+    const maxMonthlyTotal = Math.max(...monthsData.map(m => m.total), 0);
+
+    return {
+      year: targetYear,
+      months: monthsData,
+      maxMonthlyTotal,
+      annualTotal: monthsData.reduce((acc, m) => acc + m.total, 0)
     };
   }
 

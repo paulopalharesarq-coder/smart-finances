@@ -157,6 +157,17 @@ window.downloadBackupJSON = function () {
   a.download = `smart_finances_backup_${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
+  
+  if (window.NotificationService && typeof window.NotificationService.recordBackupCompleted === 'function') {
+    window.NotificationService.recordBackupCompleted();
+  } else {
+    try {
+      const nowIso = new Date().toISOString();
+      localStorage.setItem('sf_last_backup_date', nowIso);
+      localStorage.setItem('sf_last_backup_reminder_date', nowIso);
+    } catch (e) {}
+  }
+
   window.showToast('Backup exportado com sucesso!', 'success');
 };
 

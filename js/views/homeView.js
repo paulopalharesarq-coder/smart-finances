@@ -54,64 +54,66 @@ window.renderHomeView = function () {
   const todayStr = (window.NotificationService ? window.NotificationService.getLocalDateString(0) : new Date().toISOString().split('T')[0]);
   const tomorrowStr = (window.NotificationService ? window.NotificationService.getLocalDateString(1) : new Date(Date.now() + 86400000).toISOString().split('T')[0]);
   const dueCount = (store.state.expenses || []).filter(e => e.status === 'pending' && (e.dueDate === todayStr || e.dueDate === tomorrowStr)).length;
+  const isBackupDue = (window.NotificationService && typeof window.NotificationService.isBackupReminderDue === 'function')
+    ? window.NotificationService.isBackupReminderDue()
+    : false;
+  const totalNotifCount = dueCount + (isBackupDue ? 1 : 0);
 
   const monthsCardsHtml = monthList.length > 0 ? monthList.map(m => {
     const summary = store.calculateMonthSummary(m.key);
     const val = summary.forecastBalance;
     const isPositive = val > 0;
     const isNegative = val < 0;
-    const shortName = m.name.split(' ')[0];
 
     // Subtle closing tone class
-    const cardToneClass = isPositive ? 'month-card-positive' : isNegative ? 'month-card-negative' : 'month-card-neutral';
+    let itemToneClass = 'month-card-neutral';
+    if (summary.cardTone === 'positive') itemToneClass = 'month-card-positive';
+    else if (summary.cardTone === 'negative') itemToneClass = 'month-card-negative';
+
+    let itemValueColor = 'text-on-surface';
+    if (isPositive) itemValueColor = 'text-[#15803d] dark:text-[#69f0ae]';
+    else if (isNegative) itemValueColor = 'text-[#dc2626] dark:text-[#ff8a80]';
 
     return `
       <div onclick="window.financeStore.openMonthDetail('${m.key}')" 
-           class="month-card-item ${cardToneClass} rounded-2xl p-4 flex justify-between items-center cursor-pointer group active:scale-[0.99] transition-all shadow-sm">
-        <!-- Lado Esquerdo: Nome do Mês -->
-        <div class="flex items-center gap-3">
-          <h3 class="font-body-lg text-sm sm:text-base font-bold text-on-surface dark:text-[#fcf6f2] group-hover:text-primary transition-colors">
-            ${shortName}
-          </h3>
+           class="p-4 rounded-2xl flex justify-between items-center transition-all active:scale-[0.99] cursor-pointer ${itemToneClass}">
+        <div>
+          <span class="text-xs font-bold text-on-surface block">${m.name}</span>
+          <span class="text-[11px] text-on-surface-variant">${summary.monthStatus === 'closed' ? 'Fechado' : 'Em andamento'}</span>
         </div>
-
-        <!-- Lado Direito: Balanço Mensal e Seta -->
-        <div class="flex items-center gap-3">
-          <div class="text-right">
-            <span class="font-price-display text-sm font-extrabold ${isNegative ? 'text-[#dc2626] dark:text-[#ff8a80]' : isPositive ? 'text-[#15803d] dark:text-[#69f0ae]' : 'text-on-surface-variant dark:text-[#d7c3b5]'} block leading-tight">
-              ${fmt(val)}
-            </span>
-            <span class="text-[10px] text-on-surface-variant/80 dark:text-[#d7c3b5]/80 font-medium block mt-0.5">
-              Balanço mensal
-            </span>
-          </div>
-          <span class="material-symbols-outlined text-[20px] text-outline/80 group-hover:translate-x-0.5 group-hover:text-primary transition-all">
-            chevron_right
+        <div class="text-right">
+          <span class="font-price-display text-sm font-extrabold block ${itemValueColor}">
+            ${fmt(val)}
           </span>
+          <span class="text-[10px] text-on-surface-variant">Balanço</span>
         </div>
       </div>
     `;
   }).join('') : `
-    <div class="py-8 text-center bg-surface-container/40 rounded-2xl border border-dashed border-outline-variant/40 p-4">
-      <span class="material-symbols-outlined text-3xl text-outline mb-1">calendar_today</span>
-      <h4 class="font-body-lg text-xs font-bold text-on-surface">Nenhum mês ${activeSection === 'previous' ? 'anterior' : 'futuro'} em ${selectedYear}</h4>
-      <p class="text-[11px] text-on-surface-variant mt-0.5">Use o seletor de ano superior para navegar por outros anos.</p>
+    <div class="text-center py-6 bg-surface-container/40 dark:bg-white/5 rounded-2xl border border-outline-variant/30">
+      <p class="text-xs text-on-surface-variant font-medium">Nenhum mês para exibir neste período.</p>
     </div>
   `;
 
   return `
-    <div class="pb-36">
-      <!-- TopAppBar: Avatar com Foto/Silhueta, Saudação, Nome e Notificações -->
-      <header class="flex justify-between items-center w-full px-5 pt-4 pb-2 bg-background sticky top-0 z-30">
-        <div class="flex items-center gap-3.5 cursor-pointer" onclick="window.financeStore.setActiveTab('settings')">
-          <!-- Avatar Circular com Foto ou Ícone Oficial Padrão -->
-          <div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container flex items-center justify-center shrink-0 shadow-sm border border-outline-variant/30">
-            ${userPhoto ? `
-              <img src="${userPhoto}" alt="${userName}" class="w-full h-full object-cover">
-            ` : `
-              <img src="./icons/icon-192.png" alt="${userName}" class="w-full h-full object-cover">
-            `}
+    <div class="pb-36 min-h-screen">
+      <!-- TopAppBar / Header da Home -->
+      <header class="flex justify-between items-center w-full px-5 py-3.5 sticky top-0 bg-background/80 backdrop-blur-md z-30">
+        <div class="flex items-center gap-3">
+          <!-- Avatar Clicável para Abrir Edição de Perfil (Usa Novo Ícone Oficial como padrão) -->
+          <div class="relative cursor-pointer group" onclick="window.openProfileEditModal()" title="Editar perfil">
+            <div class="w-11 h-11 rounded-full overflow-hidden border-2 border-primary/20 bg-surface-container flex items-center justify-center text-on-surface font-extrabold text-sm shadow-sm transition-transform active:scale-95">
+              ${userPhoto ? `
+                <img src="${userPhoto}" alt="${userName}" class="w-full h-full object-cover">
+              ` : `
+                <img src="./icons/icon-192.png" alt="Smart Finances" class="w-full h-full object-cover">
+              `}
+            </div>
+            <div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-primary rounded-full border-2 border-background flex items-center justify-center">
+              <span class="material-symbols-outlined text-[9px] text-white">edit</span>
+            </div>
           </div>
+
           <div class="flex flex-col">
             <span class="text-xs text-[#8c7462] dark:text-[#b89f8d] font-medium leading-tight">Bem vindo novamente</span>
             <h1 class="text-xl font-extrabold text-[#1c1917] dark:text-[#fcf6f2] tracking-tight leading-snug mt-0.5">
@@ -126,9 +128,9 @@ window.renderHomeView = function () {
                 class="relative w-11 h-11 rounded-2xl bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] flex items-center justify-center hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer" 
                 title="Central de Notificações">
           <span class="material-symbols-outlined text-[22px]">notifications</span>
-          ${dueCount > 0 ? `
-            <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#dc2626] text-white text-[10px] font-black flex items-center justify-center shadow-md animate-pulse">
-              ${dueCount}
+          ${totalNotifCount > 0 ? `
+            <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full ${dueCount > 0 ? 'bg-[#dc2626] animate-pulse' : 'bg-secondary'} text-white text-[10px] font-black flex items-center justify-center shadow-md">
+              ${totalNotifCount}
             </span>
           ` : ''}
         </button>

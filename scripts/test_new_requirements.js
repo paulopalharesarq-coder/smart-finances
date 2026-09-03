@@ -234,10 +234,11 @@ runTest('9. CSS floating-bottom-dock has refined glass, blur, thin border, and d
 runTest('9b. Notification center modal displays empty state when no pending items', () => {
   const store = window.financeStore;
   store.state.expenses = [];
+  localStorage.setItem('sf_last_backup_date', new Date().toISOString());
   const container = document.getElementById('modal-container');
   window.openNotificationCenterModal();
   assert(container.innerHTML.includes('Nenhuma notificação'), 'Empty state title rendered');
-  assert(container.innerHTML.includes('Você não possui despesas pendentes com vencimento para hoje ou amanhã'), 'Empty state description rendered');
+  assert(container.innerHTML.includes('Tudo em dia') || container.innerHTML.includes('Você não possui despesas pendentes'), 'Empty state description rendered');
 });
 
 runTest('9c. Notification center modal lists pending items when due today or tomorrow', () => {

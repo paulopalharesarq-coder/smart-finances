@@ -116,6 +116,8 @@ function renderApp() {
   `;
 }
 
+window.renderApp = renderApp;
+
 // Dynamic Status Bar & Theme-Color Synchronizer for iOS & Android PWAs
 // Dynamic Status Bar & Theme-Color Synchronizer for iOS & Android PWAs
 function updateStatusBarTheme(isDark) {

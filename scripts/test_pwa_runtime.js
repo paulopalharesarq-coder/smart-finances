@@ -105,6 +105,14 @@ scripts.forEach(scriptPath => {
 });
 
 console.log('=== TEST 1: Category Background Cards in Month Detail ===');
+window.financeStore.addExpense({
+  name: 'Aluguel',
+  amount: 2000,
+  categoryId: 'moradia',
+  monthKey: window.financeStore.getCurrentMonthKey(),
+  dueDate: `${window.financeStore.getCurrentMonthKey()}-10`,
+  status: 'paid'
+});
 window.financeStore.setActiveTab('month');
 console.assert(elements['app'].innerHTML.includes('category-tinted-card'), 'Cards must have category-tinted-card class');
 console.assert(elements['app'].innerHTML.includes('--card-bg:'), 'Cards must set --card-bg CSS variable');
