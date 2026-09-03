@@ -28,10 +28,11 @@ window.renderMonthDetailView = function () {
             <span class="text-on-surface-variant text-xs font-medium">${summary.monthStatus === 'closed' ? 'Mês Fechado' : 'Mês Aberto'}</span>
           </div>
         </div>
-
         <div class="flex items-center gap-1.5">
-          <button onclick="window.openMonthCloseModal('${monthKey}')" class="px-3 py-1.5 rounded-xl bg-primary-container text-on-primary-container font-bold text-xs flex items-center gap-1 hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer" title="Fechar Mês">
-            <span class="material-symbols-outlined text-[16px]">lock</span>
+          <button onclick="window.openMonthCloseModal('${monthKey}')" 
+                  class="px-3.5 py-2 rounded-2xl bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer" 
+                  title="Fechar Mês">
+            <span class="material-symbols-outlined text-[17px]">lock</span>
             <span>Fechamento</span>
           </button>
         </div>
@@ -40,45 +41,46 @@ window.renderMonthDetailView = function () {
       <!-- Main Content -->
       <main class="px-5 pt-2 space-y-4">
         
-        <!-- Abas Principais: [ Despesas (Vermelho) ] e [ Receitas (Verde) ] -->
-        <div class="flex gap-2 p-1 bg-surface-container rounded-2xl border border-outline-variant/30">
-          <!-- Aba Despesas -->
+        <!-- Seletor Segmentado: [ Despesas ] [ Receitas ] (Cores 100% alinhadas ao card da Home) -->
+        <div class="bg-[#f4ebe4] dark:bg-[#2b2019] p-1 rounded-full flex items-center gap-1 border border-[#ebdcd1] dark:border-[#3e3027] shadow-inner">
+          <!-- Aba Despesas: Coral do card negativo da Home (#ea7355 / #852f1b) -->
           <button onclick="window.financeStore.setMonthDetailTab('expenses')" 
-                  class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeTab === 'expenses' ? 'bg-[#dc2626] text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'}">
-            <span class="material-symbols-outlined text-[18px]">trending_down</span>
+                  class="flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeTab === 'expenses' ? 'bg-[#ea7355] dark:bg-[#852f1b] text-white shadow-sm' : 'text-[#8c7365] dark:text-[#a89487] hover:text-on-surface'}">
+            <span class="material-symbols-outlined text-[17px]">trending_down</span>
             <span id="tab-expenses-count-label">Despesas (${allExpenses.length})</span>
           </button>
 
-          <!-- Aba Receitas -->
+          <!-- Aba Receitas: Verde do card positivo da Home (#309b57 / #124d27) -->
           <button onclick="window.financeStore.setMonthDetailTab('incomes')" 
-                  class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeTab === 'incomes' ? 'bg-secondary text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'}">
-            <span class="material-symbols-outlined text-[18px]">trending_up</span>
+                  class="flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeTab === 'incomes' ? 'bg-[#309b57] dark:bg-[#124d27] text-white shadow-sm' : 'text-[#8c7365] dark:text-[#a89487] hover:text-on-surface'}">
+            <span class="material-symbols-outlined text-[17px]">trending_up</span>
             <span id="tab-incomes-count-label">Receitas (${allIncomes.length})</span>
           </button>
         </div>
 
-        <!-- Barra de Busca & Botão de Filtros (Busca mantida no DOM sem perda de foco) -->
+        <!-- Barra de Busca & Botão de Filtros (Na mesma linguagem visual do botão Fechamento) -->
         <div class="flex items-center gap-2">
           <div class="relative flex-1">
-            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline-variant text-[20px]">search</span>
+            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#944a00]/70 dark:text-[#ffb783]/70 text-[18px]">search</span>
             <input type="text" 
                    id="month-search-input"
                    value="${store.state.monthSearchQuery || ''}" 
                    oninput="window.handleMonthSearchInput(this.value)" 
                    placeholder="Buscar lançamentos..." 
-                   class="w-full pl-10 pr-9 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 focus:border-primary focus:outline-none text-xs text-on-surface placeholder:text-outline">
+                   class="w-full pl-10 pr-9 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface placeholder:text-[#944a00]/50 dark:placeholder:text-[#ffb783]/50 shadow-sm transition-all">
             <button id="month-search-clear-btn" 
                     type="button" 
                     onclick="window.clearMonthSearch()" 
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface cursor-pointer ${store.state.monthSearchQuery ? '' : 'hidden'}">
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-[#944a00]/70 dark:text-[#ffb783]/70 hover:text-on-surface cursor-pointer ${store.state.monthSearchQuery ? '' : 'hidden'}">
               <span class="material-symbols-outlined text-[16px]">close</span>
             </button>
           </div>
 
-          <!-- Botão de Filtros -->
+          <!-- Botão de Filtros (Mesma linguagem visual do botão Fechamento) -->
           <button onclick="window.openMonthFiltersModal('${activeTab === 'expenses' ? 'expense' : 'income'}')" 
-                  class="px-3.5 py-2.5 rounded-xl border flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${hasFilters ? 'bg-primary text-white border-primary shadow-sm' : 'bg-surface-container hover:bg-surface-variant text-on-surface border-outline-variant/40'}">
-            <span class="material-symbols-outlined text-[18px]">tune</span>
+                  class="px-3.5 py-2.5 rounded-2xl ${hasFilters ? 'bg-primary text-white border-primary shadow-sm' : 'bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] border border-transparent dark:border-white/5'} font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer"
+                  title="Filtros">
+            <span class="material-symbols-outlined text-[17px]">tune</span>
             <span>Filtros</span>
           </button>
         </div>
@@ -100,37 +102,27 @@ window.renderMonthDetailView = function () {
         </div>
       </main>
 
-      <!-- FAB Botão Adicionar (Subido para bottom-36 para não encostar nem cobrir o card inferior) -->
-      <div class="fixed bottom-36 right-6 z-40 max-w-[540px]">
-        <button onclick="${activeTab === 'expenses' ? `window.openExpenseModal('${monthKey}')` : `window.openIncomeModal('${monthKey}')`}" 
-                class="w-14 h-14 ${activeTab === 'expenses' ? 'bg-[#dc2626]' : 'bg-secondary'} text-white rounded-full shadow-[0px_8px_24px_rgba(0,0,0,0.35)] flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer" 
-                title="${activeTab === 'expenses' ? 'Nova Despesa' : 'Nova Receita'}">
-          <span class="material-symbols-outlined text-[30px] font-bold">add</span>
-        </button>
-      </div>
-
       <!-- Card Flutuante Inferior de Resumo: Despesas Restantes + Total Contextual -->
       <div id="month-summary-dock-container" class="fixed bottom-4 left-0 right-0 max-w-[370px] sm:max-w-[430px] mx-auto z-40 px-3 pointer-events-none pb-[env(safe-area-inset-bottom,0px)]">
         ${window.getMonthSummaryDockHtml(monthKey, activeTab)}
       </div>
+
+      <!-- FAB Flutuante de Adicionar (Cores 100% alinhadas ao card da Home: Coral para Despesas, Verde para Receitas) -->
+      <button onclick="${activeTab === 'expenses' ? `window.openExpenseModal('${monthKey}')` : `window.openIncomeModal('${monthKey}')`}" 
+              class="fixed bottom-36 right-6 z-40 w-14 h-14 rounded-full ${activeTab === 'expenses' ? 'bg-[#ea7355] dark:bg-[#852f1b]' : 'bg-[#309b57] dark:bg-[#124d27]'} text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer" 
+              title="${activeTab === 'expenses' ? 'Adicionar Despesa' : 'Adicionar Receita'}">
+        <span class="material-symbols-outlined text-[28px]">add</span>
+      </button>
     </div>
   `;
 };
 
-// Formatter Helper
-function fmtCurrency(val, hideBalances) {
-  if (hideBalances) return '••••••';
-  const num = Number(val || 0);
-  const prefix = num < 0 ? '-R$ ' : 'R$ ';
-  const formattedNum = Math.abs(num).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return `${prefix}${formattedNum}`;
-}
-
-// Generate Items List HTML with Chronological Ordering & Category Badges
 window.getMonthItemsHtml = function (monthKey, activeTab) {
   const store = window.financeStore;
-  const hideBalances = Boolean(store.state.hideBalances);
-  const searchQuery = (store.state.monthSearchQuery || '').toLowerCase();
+  const hideBalances = store.state.hideBalances || false;
+  const fmtCurrency = (val, hide) => hide ? 'R$ •••••' : Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const searchQuery = (store.state.monthSearchQuery || '').toLowerCase().trim();
   const categoryFilter = store.state.monthFilterCategory || 'all';
   const statusFilter = store.state.monthFilterStatus || 'all';
   const personFilter = store.state.monthFilterPayeePayer || 'all';
@@ -151,7 +143,7 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
           <span class="material-symbols-outlined text-3xl text-outline mb-1">receipt_long</span>
           <h4 class="font-body-lg text-xs font-bold text-on-surface">Nenhuma despesa encontrada</h4>
           <p class="text-[11px] text-on-surface-variant mt-0.5 mb-3">Toque no botão abaixo para cadastrar despesas.</p>
-          <button onclick="window.openExpenseModal('${monthKey}')" class="px-4 py-2 bg-[#dc2626] text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer">
+          <button onclick="window.openExpenseModal('${monthKey}')" class="px-4 py-2 bg-[#ea7355] dark:bg-[#852f1b] text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer hover:opacity-95 active:scale-95 transition-all">
             + Adicionar Despesa
           </button>
         </div>
@@ -168,7 +160,6 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
         <div class="category-tinted-card rounded-2xl p-4 border transition-all shadow-sm group relative" 
              style="--card-bg: ${styles.cardBgLight}; --card-border: ${styles.cardBorderLight}; --card-bg-dark: ${styles.cardBgDark}; --card-border-dark: ${styles.cardBorderDark};">
           
-          <!-- Top Line: Nome à esquerda e Botão de Status (Pago = Verde, Pendente = Vermelho) -->
           <div class="flex justify-between items-center gap-2">
             <div class="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1" onclick="window.openExpenseModal('${monthKey}', '${exp.id}')">
               <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style="background-color: ${cat.bgColor}; color: ${cat.textColor}">
@@ -179,7 +170,6 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
               </h4>
             </div>
 
-            <!-- Botão de Status: Pago = Verde com fundo verde real, Pendente = Vermelho com fundo vermelho -->
             <button type="button" 
                     onclick="event.stopPropagation(); window.openStatusPickerModal({ id: '${exp.id}', type: 'expense', currentStatus: '${exp.status}' })" 
                     class="px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${isPaid ? 'bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border border-[#86efac] dark:border-[#166534]' : 'bg-[#fee2e2] dark:bg-[#3b1212] text-[#dc2626] dark:text-[#fca5a5] border border-[#fca5a5] dark:border-[#7f1d1d]'}"
@@ -189,28 +179,22 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
             </button>
           </div>
 
-          <!-- Middle Line: Valor SEMPRE NEUTRO (Nunca vermelho ou verde em despesas) -->
           <div class="my-2 cursor-pointer" onclick="window.openExpenseModal('${monthKey}', '${exp.id}')">
             <span class="font-price-display text-lg sm:text-xl font-extrabold text-on-surface dark:text-[#fcf6f2] block leading-none">
               ${fmtCurrency(exp.amount, hideBalances)}
             </span>
           </div>
 
-          <!-- Bottom Line: Metadados Fixos, Data Destacada e Badges (Parcelas / Recorrente) -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-outline-variant/20 text-xs cursor-pointer" onclick="window.openExpenseModal('${monthKey}', '${exp.id}')">
-            <!-- 1. Categoria -->
-            <div class="flex items-center gap-1 text-[11px] font-bold truncate" style="color: ${cat.textColor}">
-              <span class="material-symbols-outlined text-[14px]">${cat.icon}</span>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 text-xs cursor-pointer" onclick="window.openExpenseModal('${monthKey}', '${exp.id}')">
+            <div class="flex items-center text-[11px] font-bold text-on-surface-variant dark:text-[#d7c3b5] truncate">
               <span class="truncate">${cat.name}</span>
             </div>
 
-            <!-- 2. Data de Vencimento -->
             <div class="flex items-center gap-1 font-bold text-on-surface text-xs justify-end sm:justify-center">
-              <span class="material-symbols-outlined text-[15px] text-primary">event</span>
+              <span class="material-symbols-outlined text-[15px]" style="color: ${cat.textColor}">event</span>
               <span>${exp.dueDate ? exp.dueDate.split('-').reverse().slice(0, 2).join('/') : 'Sem data'}</span>
             </div>
 
-            <!-- 3. Recebedor e Badges Auxiliares (ex: 4/10 ou Recorrente) -->
             <div class="col-span-2 sm:col-span-1 flex items-center gap-1.5 justify-between sm:justify-end text-[11px] text-on-surface-variant font-medium">
               <span class="truncate">${exp.payee ? exp.payee : '—'}</span>
               ${exp.isInstallment ? `
@@ -250,7 +234,7 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
           <span class="material-symbols-outlined text-3xl text-outline mb-1">payments</span>
           <h4 class="font-body-lg text-xs font-bold text-on-surface">Nenhuma receita encontrada</h4>
           <p class="text-[11px] text-on-surface-variant mt-0.5 mb-3">Toque no botão abaixo para cadastrar receitas.</p>
-          <button onclick="window.openIncomeModal('${monthKey}')" class="px-4 py-2 bg-secondary text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer">
+          <button onclick="window.openIncomeModal('${monthKey}')" class="px-4 py-2 bg-[#309b57] dark:bg-[#124d27] text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer hover:opacity-95 active:scale-95 transition-all">
             + Adicionar Receita
           </button>
         </div>
@@ -266,7 +250,6 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
         <div class="category-tinted-card rounded-2xl p-4 border transition-all shadow-sm group relative" 
              style="--card-bg: ${styles.cardBgLight}; --card-border: ${styles.cardBorderLight}; --card-bg-dark: ${styles.cardBgDark}; --card-border-dark: ${styles.cardBorderDark};">
           
-          <!-- Top Line: Nome à esquerda e Botão de Status (Recebida = Verde, Prevista = Azul) -->
           <div class="flex justify-between items-center gap-2">
             <div class="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1" onclick="window.openIncomeModal('${monthKey}', '${inc.id}')">
               <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style="background-color: ${cat.bgColor}; color: ${cat.textColor}">
@@ -277,7 +260,6 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
               </h4>
             </div>
 
-            <!-- Botão de Status: Recebida = Verde real, Prevista = Azul suave -->
             <button type="button" 
                     onclick="event.stopPropagation(); window.openStatusPickerModal({ id: '${inc.id}', type: 'income', currentStatus: '${inc.status}' })" 
                     class="px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${isReceived ? 'bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border border-[#86efac] dark:border-[#166534]' : 'bg-[#e0f2fe] dark:bg-[#0c2438] text-[#0284c7] dark:text-[#7dd3fc] border border-[#7dd3fc] dark:border-[#075985]'}"
@@ -287,28 +269,22 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
             </button>
           </div>
 
-          <!-- Middle Line: Valor da Receita -->
           <div class="my-2 cursor-pointer" onclick="window.openIncomeModal('${monthKey}', '${inc.id}')">
             <span class="font-price-display text-lg sm:text-xl font-extrabold text-secondary dark:text-[#7bf8a1] block leading-none">
               ${fmtCurrency(inc.amount, hideBalances)}
             </span>
           </div>
 
-          <!-- Bottom Line: Metadados Fixos e Data -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-outline-variant/20 text-xs cursor-pointer" onclick="window.openIncomeModal('${monthKey}', '${inc.id}')">
-            <!-- 1. Categoria -->
-            <div class="flex items-center gap-1 text-[11px] font-bold truncate" style="color: ${cat.textColor}">
-              <span class="material-symbols-outlined text-[14px]">${cat.icon}</span>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 text-xs cursor-pointer" onclick="window.openIncomeModal('${monthKey}', '${inc.id}')">
+            <div class="flex items-center text-[11px] font-bold text-on-surface-variant dark:text-[#d7c3b5] truncate">
               <span class="truncate">${cat.name}</span>
             </div>
 
-            <!-- 2. Data -->
             <div class="flex items-center gap-1 font-bold text-on-surface text-xs justify-end sm:justify-center">
-              <span class="material-symbols-outlined text-[15px] text-secondary">event</span>
+              <span class="material-symbols-outlined text-[15px]" style="color: ${cat.textColor}">event</span>
               <span>${inc.expectedDate ? inc.expectedDate.split('-').reverse().slice(0, 2).join('/') : 'Sem data'}</span>
             </div>
 
-            <!-- 3. Pagador e Badges -->
             <div class="col-span-2 sm:col-span-1 flex items-center gap-1.5 justify-between sm:justify-end text-[11px] text-on-surface-variant font-medium">
               <span class="truncate">${inc.payer ? inc.payer : '—'}</span>
               ${inc.isBalanceCarriedOver ? `
@@ -330,11 +306,11 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
   }
 };
 
-// Generate Floating Summary Dock HTML (Maior destaque visual, padding aumentado, Dark Mode glass)
 window.getMonthSummaryDockHtml = function (monthKey, activeTab) {
   const store = window.financeStore;
   const summary = store.calculateMonthSummary(monthKey);
   const hideBalances = Boolean(store.state.hideBalances);
+  const fmtCurrency = (val, hide) => hide ? 'R$ •••••' : Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const hasFilters = store.hasActiveFilters();
   const searchQuery = (store.state.monthSearchQuery || '').toLowerCase();
   const categoryFilter = store.state.monthFilterCategory || 'all';

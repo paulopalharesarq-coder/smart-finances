@@ -257,6 +257,97 @@ runTest('9d. Floating sheets and dialogs include rounded border-radius tokens', 
   assert(css.includes('border-radius: 28px !important'), '28px radius on floating dialogs');
 });
 
+runTest('9e. Light mode month cards have soft pastel tones (#f0faf3 positive, #fdf3f2 negative, #fbf9f7 neutral)', () => {
+  const css = fs.readFileSync(path.join(rootDir, 'css', 'app.css'), 'utf8');
+  assert(css.includes('background-color: #f0faf3;'), 'Soft pastel green for positive months');
+  assert(css.includes('background-color: #fdf3f2;'), 'Soft pastel red for negative months');
+  assert(css.includes('background-color: #fbf9f7;'), 'Soft neutral for zero/neutral months');
+});
+
+runTest('9f. Expense card has no internal dividing line (border-t removed)', () => {
+  const store = window.financeStore;
+  store.state.expenses = [
+    { id: 'exp_clean', monthKey: '2026-09', name: 'Mercado Sem Linha', amount: 350, status: 'pending', categoryId: 'alimentacao', dueDate: '2026-09-15' }
+  ];
+  const itemsHtml = window.getMonthItemsHtml('2026-09', 'expenses');
+  assert(!itemsHtml.includes('border-t border-outline-variant/20'), 'Internal dividing line completely removed');
+});
+
+runTest('9g. Expense card removes duplicate small category icon and uses neutral category text', () => {
+  const itemsHtml = window.getMonthItemsHtml('2026-09', 'expenses');
+  assert(itemsHtml.includes('text-on-surface-variant dark:text-[#d7c3b5]'), 'Category name uses neutral text color');
+  assert(!itemsHtml.includes('text-[14px]'), 'Duplicate small category icon is removed');
+});
+
+runTest('9h. Calendar icon in expense card inherits category color', () => {
+  const itemsHtml = window.getMonthItemsHtml('2026-09', 'expenses');
+  const cat = window.financeStore.getCategoryById('alimentacao');
+  assert(itemsHtml.includes(`style="color: ${cat.textColor}"`), 'Calendar icon inherits category text color');
+});
+
+runTest('9i. Fechamento button inside month detail uses discrete notification bell style', () => {
+  const monthHtml = window.renderMonthDetailView();
+  assert(monthHtml.includes('bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783]'), 'Fechamento button uses discrete notification button style');
+  assert(monthHtml.includes('rounded-2xl'), 'Fechamento button has rounded-2xl');
+});
+
+runTest('9j. Modal header uses solid background without dark backdrop blur bleed in rounded corners', () => {
+  const container = document.getElementById('modal-container');
+  window.openExpenseModal('2026-09');
+  assert(container.innerHTML.includes('bg-surface dark:bg-[#241b15]'), 'Expense modal header uses solid surface');
+  assert(!container.innerHTML.includes('backdrop-blur-md border-b border-outline-variant/20 flex justify-between items-center shrink-0 rounded-t-[32px]'), 'backdrop-blur-md removed from header');
+});
+
+runTest('9k. floating-month-summary-dock reuses exact light mode border and glass token from floating-bottom-dock', () => {
+  const css = fs.readFileSync(path.join(rootDir, 'css', 'app.css'), 'utf8');
+  assert(css.includes('.floating-month-summary-dock {\n  background: rgba(255, 255, 255, 0.82);\n  backdrop-filter: blur(32px) saturate(220%);\n  -webkit-backdrop-filter: blur(32px) saturate(220%);\n  border: 1px solid rgba(148, 74, 0, 0.15);'), 'Summary dock matches navigation dock in light mode');
+});
+
+runTest('9l. Month Detail tab selector reuses Home navigation pill geometry and container', () => {
+  const monthHtml = window.renderMonthDetailView();
+  assert(monthHtml.includes('bg-[#f4ebe4] dark:bg-[#2b2019] p-1 rounded-full flex items-center gap-1 border border-[#ebdcd1] dark:border-[#3e3027] shadow-inner'), 'Tab selector uses pill container');
+  assert(monthHtml.includes('rounded-full'), 'Tabs use rounded-full');
+});
+
+runTest('9m. Despesas active tab pill uses exact Home negative card coral (bg-[#ea7355] dark:bg-[#852f1b])', () => {
+  window.financeStore.setMonthDetailTab('expenses');
+  const monthHtml = window.renderMonthDetailView();
+  assert(monthHtml.includes('bg-[#ea7355] dark:bg-[#852f1b] text-white shadow-sm'), 'Despesas active pill uses Home card negative coral');
+});
+
+runTest('9n. Receitas active tab pill uses exact Home positive card green (bg-[#309b57] dark:bg-[#124d27])', () => {
+  window.financeStore.setMonthDetailTab('incomes');
+  const monthHtml = window.renderMonthDetailView();
+  assert(monthHtml.includes('bg-[#309b57] dark:bg-[#124d27] text-white shadow-sm'), 'Receitas active pill uses Home card positive green');
+});
+
+runTest('9o. Floating add button dynamically matches active tab color (coral for expenses, green for incomes)', () => {
+  window.financeStore.setMonthDetailTab('expenses');
+  let monthHtml = window.renderMonthDetailView();
+  assert(monthHtml.includes('bg-[#ea7355] dark:bg-[#852f1b]'), 'FAB button renders Home coral on expenses tab');
+
+  window.financeStore.setMonthDetailTab('incomes');
+  monthHtml = window.renderMonthDetailView();
+  assert(monthHtml.includes('bg-[#309b57] dark:bg-[#124d27]'), 'FAB button renders Home green on incomes tab');
+});
+
+runTest('9p. Filtros button reuses Fechamento button visual language (bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] rounded-2xl)', () => {
+  const monthHtml = window.renderMonthDetailView();
+  assert(monthHtml.includes('bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783]'), 'Filtros button uses Fechamento palette');
+  assert(monthHtml.includes('rounded-2xl'), 'Filtros button uses rounded-2xl');
+});
+
+runTest('9q. Search input reuses Fechamento button visual language (bg-[#faeae0] dark:bg-[#332218] rounded-2xl)', () => {
+  const monthHtml = window.renderMonthDetailView();
+  assert(monthHtml.includes('bg-[#faeae0] dark:bg-[#332218] rounded-2xl'), 'Search input uses Fechamento background and radius');
+});
+
+runTest('9r. Year picker on Home reuses Fechamento button visual language (bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] rounded-2xl)', () => {
+  const homeHtml = window.renderHomeView();
+  assert(homeHtml.includes('bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783]'), 'Year picker uses Fechamento palette');
+  assert(homeHtml.includes('rounded-2xl'), 'Year picker uses rounded-2xl');
+});
+
 // -------------------------------------------------------------
 // GROUP 3: LOCAL IN-APP NOTIFICATIONS (Scenarios 10 - 20)
 // -------------------------------------------------------------

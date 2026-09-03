@@ -340,7 +340,7 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
       <div class="floating-modal-sheet rounded-t-[32px] p-0 slide-up flex flex-col max-h-[90vh] overflow-hidden">
         
         <!-- Sticky Header with Title and Primary Top Action (Cadastrar / Salvar) -->
-        <div class="sticky top-0 z-30 px-5 py-3.5 bg-surface/95 dark:bg-[#201813]/95 backdrop-blur-md border-b border-outline-variant/20 flex justify-between items-center shrink-0 rounded-t-[32px]">
+        <div class="sticky top-0 z-30 px-5 py-3.5 bg-surface dark:bg-[#241b15] border-b border-outline-variant/20 flex justify-between items-center shrink-0 rounded-t-[32px]">
           <div class="flex items-center gap-2.5">
             <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
               <span class="material-symbols-outlined text-[20px]">close</span>
@@ -706,7 +706,7 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
       <div class="floating-modal-sheet rounded-t-[32px] p-0 slide-up flex flex-col max-h-[90vh] overflow-hidden">
         
         <!-- Sticky Header with Title and Primary Top Action (Cadastrar / Salvar) -->
-        <div class="sticky top-0 z-30 px-5 py-3.5 bg-surface/95 dark:bg-[#201813]/95 backdrop-blur-md border-b border-outline-variant/20 flex justify-between items-center shrink-0 rounded-t-[32px]">
+        <div class="sticky top-0 z-30 px-5 py-3.5 bg-surface dark:bg-[#241b15] border-b border-outline-variant/20 flex justify-between items-center shrink-0 rounded-t-[32px]">
           <div class="flex items-center gap-2.5">
             <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
               <span class="material-symbols-outlined text-[20px]">close</span>

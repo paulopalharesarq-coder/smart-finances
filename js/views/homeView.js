@@ -240,10 +240,11 @@ window.renderHomeView = function () {
           <div class="flex items-center justify-between px-1">
             <span class="text-[11px] font-extrabold uppercase tracking-wider text-on-surface-variant">Navegação Temporal</span>
             <button onclick="window.openYearPickerModal()" 
-                    class="px-2.5 py-1 bg-surface-container hover:bg-surface-variant rounded-xl border border-outline-variant/40 text-[11px] font-bold text-primary flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer">
-              <span class="material-symbols-outlined text-[15px]">calendar_month</span>
+                    class="px-3.5 py-1.5 rounded-2xl bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] border border-transparent dark:border-white/5 font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer"
+                    title="Alterar Ano">
+              <span class="material-symbols-outlined text-[16px]">calendar_month</span>
               <span>Ano: ${selectedYear}</span>
-              <span class="material-symbols-outlined text-[14px]">expand_more</span>
+              <span class="material-symbols-outlined text-[15px]">expand_more</span>
             </button>
           </div>
 
