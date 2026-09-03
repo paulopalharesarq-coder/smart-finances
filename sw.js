@@ -3,7 +3,7 @@
  * Provides robust offline functionality, instant loads and asset caching.
  */
 
-const CACHE_NAME = 'smart-finances-v202609022208';
+const CACHE_NAME = 'smart-finances-v202609031955';
 
 const PRECACHE_ASSETS = [
   './',

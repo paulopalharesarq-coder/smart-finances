@@ -509,6 +509,24 @@ html.dark .card-month-neutral {
   }
 }
 
+/* Category selection buttons in expense/income modals */
+.category-select-btn {
+  background-color: var(--cat-bg-light);
+  border: 1px solid var(--cat-border-light);
+}
+
+html.dark .category-select-btn {
+  background-color: var(--cat-bg-dark) !important;
+  border-color: var(--cat-border-dark) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .category-select-btn {
+    background-color: var(--cat-bg-dark) !important;
+    border-color: var(--cat-border-dark) !important;
+  }
+}
+
 /* Smooth transitions & animations */
 .fade-in {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;

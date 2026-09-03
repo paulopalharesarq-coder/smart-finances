@@ -80,7 +80,9 @@ function createMockElement(tagName = 'div') {
     remove: function () {},
     innerHTML: '',
     appendChild: function (child) { this.children = this.children || []; this.children.push(child); },
-    children: []
+    children: [],
+    querySelector: function (sel) { return createMockElement('div'); },
+    insertAdjacentHTML: function (pos, text) {}
   };
 }
 
@@ -578,6 +580,150 @@ runTest('30. Full regression: Store, Categories, Recurrence, and Installments re
   assert.strictEqual(cats.length, 10, 'All 10 expense categories present');
   const fallbackCat = store.getCategoryById('outras_despesas');
   assert(fallbackCat && fallbackCat.id === 'outras_despesas', 'Fallback category intact');
+});
+
+console.log('\n--- GROUP 5: Modal Refinements & Official Icon Verification ---');
+
+runTest('31. Nova Despesa top button uses Home Coral (#ea7355 / #852f1b)', () => {
+  window.openExpenseModal('2026-09');
+  const modalContainer = document.getElementById('modal-container');
+  const html = modalContainer.innerHTML;
+  assert(html.includes('bg-[#ea7355] dark:bg-[#852f1b]'), 'Top submit button uses Home Coral');
+});
+
+runTest('32. Nova Despesa text inputs and amount box use search bar visual language (bg-[#faeae0] dark:bg-[#332218] rounded-2xl)', () => {
+  window.openExpenseModal('2026-09');
+  const modalContainer = document.getElementById('modal-container');
+  const html = modalContainer.innerHTML;
+  assert(html.includes('id="expense-name"'), 'Expense name input exists');
+  assert(html.includes('bg-[#faeae0] dark:bg-[#332218] rounded-2xl'), 'Expense name uses search input language');
+  assert(html.includes('id="expense-amount-box"'), 'Expense amount box exists');
+  assert(html.includes('text-[#ea7355] dark:text-[#f87171]'), 'Expense amount text uses coral');
+});
+
+runTest('33. Nova Despesa status buttons use card language (#fee2e2 / #3b1212 for pending, #dcfce7 / #0f2e1b for paid)', () => {
+  window.openExpenseModal('2026-09');
+  const modalContainer = document.getElementById('modal-container');
+  const html = modalContainer.innerHTML;
+  assert(html.includes('id="expense-status-pending-btn"'), 'Pending status button exists');
+  assert(html.includes('bg-[#fee2e2] dark:bg-[#3b1212] text-[#dc2626] dark:text-[#fca5a5]'), 'Pending status uses card red/coral');
+  assert(html.includes('id="expense-status-paid-btn"'), 'Paid status button exists');
+  assert(html.includes('rounded-2xl'), 'Status buttons use rounded-2xl pill');
+});
+
+runTest('34. Nova Despesa category buttons use each category\'s soft card style', () => {
+  window.openExpenseModal('2026-09');
+  const modalContainer = document.getElementById('modal-container');
+  const html = modalContainer.innerHTML;
+  assert(html.includes('category-select-btn'), 'Category buttons exist');
+  assert(html.includes('--cat-bg-light'), 'Category buttons have soft light background token');
+  assert(html.includes('--cat-bg-dark'), 'Category buttons have soft dark background token');
+});
+
+runTest('35. Nova Despesa installment & recurrence switches use soft background (bg-[#faeae0]/60 dark:bg-[#2d211a] rounded-2xl)', () => {
+  window.openExpenseModal('2026-09');
+  const modalContainer = document.getElementById('modal-container');
+  const html = modalContainer.innerHTML;
+  assert(html.includes('bg-[#faeae0]/60 dark:bg-[#2d211a] rounded-2xl'), 'Switches use soft background');
+});
+
+runTest('36. Nova Receita top button uses Home Green (#309b57 / #124d27)', () => {
+  window.openIncomeModal('2026-09');
+  const modalContainer = document.getElementById('modal-container');
+  const html = modalContainer.innerHTML;
+  assert(html.includes('bg-[#309b57] dark:bg-[#124d27]'), 'Top submit button uses Home Green');
+});
+
+runTest('37. Nova Receita text inputs and amount box use search bar visual language (bg-[#faeae0] dark:bg-[#332218] rounded-2xl)', () => {
+  window.openIncomeModal('2026-09');
+  const modalContainer = document.getElementById('modal-container');
+  const html = modalContainer.innerHTML;
+  assert(html.includes('id="income-name"'), 'Income name input exists');
+  assert(html.includes('bg-[#faeae0] dark:bg-[#332218] rounded-2xl'), 'Income name uses search input language');
+  assert(html.includes('id="income-amount-box"'), 'Income amount box exists');
+  assert(html.includes('text-[#309b57] dark:text-[#4ade80]'), 'Income amount text uses green');
+});
+
+runTest('38. Nova Receita status buttons use card language (Prevista #e0f2fe, Recebida #dcfce7)', () => {
+  window.openIncomeModal('2026-09');
+  const modalContainer = document.getElementById('modal-container');
+  const html = modalContainer.innerHTML;
+  assert(html.includes('id="income-status-pending-btn"'), 'Pending status button exists');
+  assert(html.includes('id="income-status-received-btn"'), 'Received status button exists');
+  assert(html.includes('bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d]'), 'Received status uses card green');
+
+  // Toggle status to pending
+  window.setIncomeFormStatus('pending');
+  const pendingBtn = document.getElementById('income-status-pending-btn');
+  assert(pendingBtn.className.includes('bg-[#e0f2fe] dark:bg-[#0c2438] text-[#0284c7]'), 'Pending status uses card sky blue when active');
+});
+
+runTest('39. Nova Receita category buttons use each category\'s soft card style', () => {
+  window.openIncomeModal('2026-09');
+  const modalContainer = document.getElementById('modal-container');
+  const html = modalContainer.innerHTML;
+  assert(html.includes('category-select-btn'), 'Income category buttons exist');
+  assert(html.includes('--cat-bg-light'), 'Income category buttons have soft light background token');
+});
+
+runTest('40. Category select button dynamic toggle preserves input value', () => {
+  window.openExpenseModal('2026-09');
+  const nameInput = document.getElementById('expense-name');
+  nameInput.value = 'Compra no Supermercado';
+  
+  window.setExpenseFormCategory('alimentacao');
+  assert.strictEqual(nameInput.value, 'Compra no Supermercado', 'Input value preserved on category switch');
+});
+
+runTest('41. Official icons exist with proper size and integrity', () => {
+  const iconFiles = [
+    'icons/favicon-32.png',
+    'icons/apple-touch-icon.png',
+    'icons/icon-192.png',
+    'icons/icon-512.png',
+    'icons/icon-maskable-192.png',
+    'icons/icon-maskable-512.png',
+    'icons/source_icon.png',
+    'icons/icon.svg'
+  ];
+  iconFiles.forEach(relPath => {
+    const fullPath = path.join(__dirname, '..', relPath);
+    assert(fs.existsSync(fullPath), `Icon file ${relPath} must exist`);
+    const stats = fs.statSync(fullPath);
+    assert(stats.size > 1000, `Icon file ${relPath} must have valid non-empty size (got ${stats.size} bytes)`);
+  });
+});
+
+runTest('42. build.js executes without altering or recreating icons', () => {
+  const buildScriptPath = path.join(__dirname, 'build.js');
+  assert(fs.existsSync(buildScriptPath), 'build.js exists');
+  const content = fs.readFileSync(buildScriptPath, 'utf8');
+  assert(!content.includes('generate_icons'), 'build.js does NOT regenerate icons');
+  assert(!content.includes('high contrast'), 'build.js does not alter icon colors');
+});
+
+runTest('43. Default avatar in HomeView uses official icon when no custom user photo is set', () => {
+  window.financeStore.state.userPhoto = '';
+  const homeHtml = window.renderHomeView();
+  assert(homeHtml.includes('src="./icons/icon-192.png"'), 'Default avatar uses official icon-192.png');
+});
+
+runTest('44. Custom user photo is preserved in HomeView when set', () => {
+  window.financeStore.state.userPhoto = 'data:image/jpeg;base64,mycustomphoto';
+  const homeHtml = window.renderHomeView();
+  assert(homeHtml.includes('src="data:image/jpeg;base64,mycustomphoto"'), 'Custom photo is preserved in HomeView');
+});
+
+runTest('45. manifest.webmanifest and index.html link all standard icon formats', () => {
+  const manifestPath = path.join(__dirname, '..', 'manifest.webmanifest');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  assert(manifest.icons && manifest.icons.length >= 4, 'Manifest contains icon definitions');
+
+  const indexPath = path.join(__dirname, '..', 'index.html');
+  const indexHtml = fs.readFileSync(indexPath, 'utf8');
+  assert(indexHtml.includes('icons/favicon-32.png'), 'index.html links favicon-32');
+  assert(indexHtml.includes('icons/apple-touch-icon.png'), 'index.html links apple-touch-icon');
+  assert(indexHtml.includes('icons/icon-192.png'), 'index.html links icon-192');
 });
 
 console.log('\n========================================================');

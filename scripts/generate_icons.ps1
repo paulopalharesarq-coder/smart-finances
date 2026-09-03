@@ -1,6 +1,6 @@
 Add-Type -AssemblyName System.Drawing
 
-$srcPath = 'C:\Users\dommi\.gemini\antigravity-ide\brain\37c08e19-fe6f-4eb9-90eb-cc8e664e5f5d\.user_uploaded\media_1788386542634.jpg'
+$srcPath = 'C:\Users\dommi\.gemini\antigravity-ide\brain\2b136735-edfc-4a2f-add8-e01cba8f5692\.user_uploaded\media_1788464465758.jpg'
 $srcImg = [System.Drawing.Image]::FromFile($srcPath)
 
 function Resize-Image($img, $width, $height, $outPath) {
@@ -32,9 +32,10 @@ function Resize-Maskable($img, $size, $outPath) {
     $graphics.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
     $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
     $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+    $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
     
     # Safe zone scale (80% centered without cropping)
-    $innerSize = [int]($size * 0.82)
+    $innerSize = [int]($size * 0.80)
     $offset = [int](($size - $innerSize) / 2)
     $destRect = New-Object System.Drawing.Rectangle($offset, $offset, $innerSize, $innerSize)
     $graphics.DrawImage($img, $destRect, 0, 0, $img.Width, $img.Height, [System.Drawing.GraphicsUnit]::Pixel)
@@ -52,7 +53,7 @@ Resize-Maskable $srcImg 192 'c:\Users\dommi\Desktop\smart_finances\icons\icon-ma
 Resize-Maskable $srcImg 512 'c:\Users\dommi\Desktop\smart_finances\icons\icon-maskable-512.png'
 
 # Also save source_icon.png copy
-Copy-Item $srcPath 'c:\Users\dommi\Desktop\smart_finances\icons\source_icon.png' -Force
+Resize-Image $srcImg $srcImg.Width $srcImg.Height 'c:\Users\dommi\Desktop\smart_finances\icons\source_icon.png'
 
 $srcImg.Dispose()
 Write-Host "All icons generated successfully!"

@@ -339,7 +339,7 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
     <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
       <div class="floating-modal-sheet rounded-t-[32px] p-0 slide-up flex flex-col max-h-[90vh] overflow-hidden">
         
-        <!-- Sticky Header with Title and Primary Top Action (Cadastrar / Salvar) -->
+        <!-- Sticky Header with Title and Primary Top Action (Cadastrar / Salvar no tom Coral da Home) -->
         <div class="sticky top-0 z-30 px-5 py-3.5 bg-surface dark:bg-[#241b15] border-b border-outline-variant/20 flex justify-between items-center shrink-0 rounded-t-[32px]">
           <div class="flex items-center gap-2.5">
             <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
@@ -350,9 +350,9 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
             </h3>
           </div>
 
-          <!-- Botão Principal no Topo -->
+          <!-- Botão Principal no Topo com o Coral Exato da Home (#ea7355 / #852f1b) -->
           <button type="submit" form="expense-form" 
-                  class="px-4 py-2 bg-[#dc2626] text-white font-bold rounded-xl text-xs shadow-md hover:opacity-95 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                  class="px-4 py-2 bg-[#ea7355] dark:bg-[#852f1b] text-white font-bold rounded-2xl text-xs shadow-sm hover:opacity-95 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
             <span class="material-symbols-outlined text-[16px]">save</span>
             <span>${expense ? 'Salvar' : 'Cadastrar'}</span>
           </button>
@@ -361,78 +361,86 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
         <!-- Scrollable Form Body -->
         <div class="p-5 pb-8 overflow-y-auto space-y-4">
           <form id="expense-form" onsubmit="window.handleSaveExpenseSubmit(event)" class="space-y-4">
-            <!-- Name -->
+            <!-- Name (Mesmo estilo visual refinado do campo de busca) -->
             <div class="space-y-1">
               <label class="text-xs font-bold text-on-surface block">Nome da Despesa *</label>
               <input type="text" id="expense-name" required placeholder="Ex: Supermercado, Aluguel, Farmácia" 
                      value="${expense ? expense.name : ''}" 
-                     class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 focus:border-[#dc2626] focus:outline-none text-sm text-on-surface font-semibold transition-all">
+                     class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface placeholder:text-[#944a00]/50 dark:placeholder:text-[#ffb783]/50 shadow-sm transition-all">
             </div>
 
             <!-- Single Amount Field with Custom In-App Keypad Trigger -->
             <div class="space-y-1">
               <label class="text-xs font-bold text-on-surface block">Valor * (Toque para digitar)</label>
               <div id="expense-amount-box" onclick="window.openKeypadForExpenseForm()" 
-                   class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 hover:border-[#dc2626] cursor-pointer flex items-center justify-between shadow-inner transition-all">
-                <span id="expense-amount-display" class="font-price-display text-xl font-extrabold text-[#dc2626]">
+                   class="w-full px-4 py-3 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 hover:border-[#944a00]/40 dark:hover:border-[#ffb783]/40 cursor-pointer flex items-center justify-between shadow-sm transition-all">
+                <span id="expense-amount-display" class="font-price-display text-xl font-extrabold text-[#ea7355] dark:text-[#f87171]">
                   ${fmtCurrency(selectedAmount)}
                 </span>
-                <span class="material-symbols-outlined text-outline text-[20px]">dialpad</span>
+                <span class="material-symbols-outlined text-[#944a00]/70 dark:text-[#ffb783]/70 text-[20px]">dialpad</span>
               </div>
               <input type="hidden" id="expense-amount" value="${selectedAmount}">
             </div>
 
-            <!-- Status Toggle: Pendente / Pago -->
+            <!-- Status Toggle: Pendente / Pago (Mesma linguagem visual dos botões dos cards) -->
             <div class="space-y-1">
               <label class="text-xs font-bold text-on-surface block">Status do Pagamento</label>
               <div class="grid grid-cols-2 gap-2">
                 <button type="button" id="expense-status-pending-btn" onclick="window.setExpenseFormStatus('pending')" 
-                        class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'pending' ? 'bg-[#dc2626] text-white border-[#dc2626] shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
+                        class="py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'pending' ? 'bg-[#fee2e2] dark:bg-[#3b1212] text-[#dc2626] dark:text-[#fca5a5] border-[#fca5a5] dark:border-[#7f1d1d] shadow-sm font-bold' : 'bg-[#faeae0]/50 dark:bg-[#281e17] text-[#8c7365] dark:text-[#a89487] border-transparent dark:border-white/5 font-semibold'}">
                   <span class="material-symbols-outlined text-[16px]">schedule</span>
                   <span>Pendente</span>
                 </button>
                 <button type="button" id="expense-status-paid-btn" onclick="window.setExpenseFormStatus('paid')" 
-                        class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'paid' ? 'bg-[#15803d] text-white border-[#15803d] shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
+                        class="py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'paid' ? 'bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border-[#86efac] dark:border-[#166534] shadow-sm font-bold' : 'bg-[#faeae0]/50 dark:bg-[#281e17] text-[#8c7365] dark:text-[#a89487] border-transparent dark:border-white/5 font-semibold'}">
                   <span class="material-symbols-outlined text-[16px]">check_circle</span>
                   <span>Pago</span>
                 </button>
               </div>
             </div>
 
-            <!-- Category Selector (Direct DOM Selection - No Input Wiping) -->
+            <!-- Category Selector (Com fundo suave e cores específicas de cada categoria) -->
             <div class="space-y-1">
               <label class="text-xs font-bold text-on-surface block">Categoria</label>
-              <div id="expense-categories-grid" class="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto p-1">
-                ${categories.map(cat => `
-                  <button type="button" onclick="window.setExpenseFormCategory('${cat.id}')" data-cat-id="${cat.id}"
-                          class="category-select-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${selectedCategory === cat.id ? 'border-[#dc2626] bg-[#dc2626]/10 font-bold' : 'border-outline-variant/30 bg-surface-container text-on-surface-variant'}">
-                    <span class="material-symbols-outlined text-[18px]" style="color: ${cat.textColor}">${cat.icon}</span>
-                    <span class="text-[10px] text-on-surface truncate w-full text-center">${cat.name}</span>
-                  </button>
-                `).join('')}
+              <div id="expense-categories-grid" class="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1">
+                ${categories.map(cat => {
+                  const styles = store.getCategoryCardStyles(cat);
+                  const isSelected = selectedCategory === cat.id;
+                  return `
+                    <button type="button" onclick="window.setExpenseFormCategory('${cat.id}')" data-cat-id="${cat.id}"
+                            class="category-select-btn p-2 rounded-2xl transition-all cursor-pointer flex flex-col items-center gap-1 relative shadow-xs ${isSelected ? 'ring-2 ring-[#ea7355] dark:ring-[#ffb783] font-bold scale-[1.02]' : 'opacity-90 hover:opacity-100'}"
+                            style="--cat-bg-light: ${styles.cardBgLight}; --cat-border-light: ${isSelected ? cat.textColor : styles.cardBorderLight}; --cat-bg-dark: ${styles.cardBgDark}; --cat-border-dark: ${isSelected ? '#ffb783' : styles.cardBorderDark};">
+                      <div class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 shadow-xs" style="background-color: ${cat.bgColor}; color: ${cat.textColor}">
+                        <span class="material-symbols-outlined text-[17px]">${cat.icon}</span>
+                      </div>
+                      <span class="text-[10px] text-on-surface dark:text-[#fcf6f2] font-semibold truncate w-full text-center">${cat.name}</span>
+                      ${isSelected ? '<span class="check-indicator material-symbols-outlined absolute top-1 right-1 text-[13px] text-[#ea7355] dark:text-[#ffb783]">check_circle</span>' : ''}
+                    </button>
+                  `;
+                }).join('')}
               </div>
             </div>
 
-            <!-- Due Date & Payee -->
+            <!-- Due Date & Payee (Mesmo estilo visual refinado do campo de busca) -->
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-1">
                 <label class="text-xs font-bold text-on-surface block">Vencimento</label>
                 <input type="date" id="expense-date" value="${expense ? expense.dueDate : `${targetMonthKey}-10`}" 
-                       class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
+                       class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface shadow-sm transition-all">
               </div>
 
               <div class="space-y-1">
                 <label class="text-xs font-bold text-on-surface block">Recebedor / Local</label>
                 <input type="text" id="expense-payee" placeholder="Ex: Imobiliária" value="${expense ? (expense.payee || '') : ''}" 
-                       class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
+                       class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface placeholder:text-[#944a00]/50 dark:placeholder:text-[#ffb783]/50 shadow-sm transition-all">
               </div>
             </div>
 
-            <!-- Switches: Despesa Parcelada & Despesa Recorrente (Only when creating new) -->
+            <!-- Switches: Despesa Parcelada & Despesa Recorrente (Cards com fundo suave e borda discreta) -->
             ${!expense ? `
               <div class="pt-2 border-t border-outline-variant/20 space-y-3">
                 <!-- Switch Despesa Parcelada -->
-                <div class="p-3 bg-surface-container rounded-2xl border border-outline-variant/30 flex items-center justify-between">
+                <div class="p-3.5 bg-[#faeae0]/60 dark:bg-[#2d211a] rounded-2xl border border-outline-variant/15 dark:border-white/5 flex items-center justify-between shadow-xs transition-all">
                   <div class="flex items-center gap-2.5">
                     <span class="material-symbols-outlined text-primary text-[20px]">credit_card</span>
                     <div>
@@ -447,17 +455,17 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
                 </div>
 
                 <!-- Installment Config Fields (Initially Hidden) -->
-                <div id="expense-installment-fields" class="hidden p-3 bg-primary-fixed/30 rounded-2xl border border-primary-fixed-dim/60 space-y-3">
+                <div id="expense-installment-fields" class="hidden p-3.5 bg-[#faeae0]/90 dark:bg-[#33251d] rounded-2xl border border-outline-variant/20 dark:border-white/5 space-y-3 shadow-xs">
                   <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
                       <label class="text-[11px] font-bold text-on-surface block">Total de Parcelas</label>
                       <input type="number" id="expense-total-installments" min="2" max="96" value="10" 
-                             class="w-full px-3 py-2 bg-surface rounded-xl border border-outline-variant/40 text-xs text-on-surface font-bold">
+                             class="w-full px-4 py-2 bg-surface dark:bg-[#241b15] rounded-xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] text-xs text-on-surface font-bold shadow-xs">
                     </div>
                     <div class="space-y-1">
                       <label class="text-[11px] font-bold text-on-surface block">Parcela Atual</label>
                       <input type="number" id="expense-current-installment" min="1" max="96" value="1" 
-                             class="w-full px-3 py-2 bg-surface rounded-xl border border-outline-variant/40 text-xs text-on-surface font-bold">
+                             class="w-full px-4 py-2 bg-surface dark:bg-[#241b15] rounded-xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] text-xs text-on-surface font-bold shadow-xs">
                     </div>
                   </div>
                   <p class="text-[10px] text-on-surface-variant leading-tight">
@@ -466,7 +474,7 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
                 </div>
 
                 <!-- Switch Despesa Recorrente -->
-                <div class="p-3 bg-surface-container rounded-2xl border border-outline-variant/30 flex items-center justify-between">
+                <div class="p-3.5 bg-[#faeae0]/60 dark:bg-[#2d211a] rounded-2xl border border-outline-variant/15 dark:border-white/5 flex items-center justify-between shadow-xs transition-all">
                   <div class="flex items-center gap-2.5">
                     <span class="material-symbols-outlined text-secondary text-[20px]">repeat</span>
                     <div>
@@ -481,9 +489,9 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
                 </div>
 
                 <!-- Recurring Config Fields (Initially Hidden) -->
-                <div id="expense-recurring-fields" class="hidden p-3 bg-secondary-fixed/30 rounded-2xl border border-secondary-fixed-dim/60 space-y-2">
+                <div id="expense-recurring-fields" class="hidden p-3.5 bg-[#faeae0]/90 dark:bg-[#33251d] rounded-2xl border border-outline-variant/20 dark:border-white/5 space-y-2 shadow-xs">
                   <label class="text-[11px] font-bold text-on-surface block">Frequência</label>
-                  <select id="expense-recurring-frequency" class="w-full px-3 py-2 bg-surface rounded-xl border border-outline-variant/40 text-xs text-on-surface font-bold">
+                  <select id="expense-recurring-frequency" class="w-full px-4 py-2 bg-surface dark:bg-[#241b15] rounded-xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] text-xs text-on-surface font-bold shadow-xs">
                     <option value="monthly" selected>Mensal (Próximos 12 meses)</option>
                   </select>
                 </div>
@@ -529,10 +537,17 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
     const btns = document.querySelectorAll('#expense-categories-grid .category-select-btn');
     btns.forEach(btn => {
       const isSelected = btn.getAttribute('data-cat-id') === catId;
+      const check = btn.querySelector('.check-indicator');
       if (isSelected) {
-        btn.className = 'category-select-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer border-[#dc2626] bg-[#dc2626]/10 font-bold';
+        btn.classList.add('ring-2', 'ring-[#ea7355]', 'dark:ring-[#ffb783]', 'font-bold', 'scale-[1.02]');
+        btn.classList.remove('opacity-90');
+        if (!check) {
+          btn.insertAdjacentHTML('beforeend', '<span class="check-indicator material-symbols-outlined absolute top-1 right-1 text-[13px] text-[#ea7355] dark:text-[#ffb783]">check_circle</span>');
+        }
       } else {
-        btn.className = 'category-select-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer border-outline-variant/30 bg-surface-container text-on-surface-variant';
+        btn.classList.remove('ring-2', 'ring-[#ea7355]', 'dark:ring-[#ffb783]', 'font-bold', 'scale-[1.02]');
+        btn.classList.add('opacity-90');
+        if (check) check.remove();
       }
     });
   };
@@ -543,11 +558,11 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
     const paidBtn = document.getElementById('expense-status-paid-btn');
     if (pendingBtn && paidBtn) {
       if (status === 'pending') {
-        pendingBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#dc2626] text-white border-[#dc2626] shadow-sm';
-        paidBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-surface-container text-on-surface-variant border-outline-variant/30';
+        pendingBtn.className = 'py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#fee2e2] dark:bg-[#3b1212] text-[#dc2626] dark:text-[#fca5a5] border-[#fca5a5] dark:border-[#7f1d1d] shadow-sm font-bold';
+        paidBtn.className = 'py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#faeae0]/50 dark:bg-[#281e17] text-[#8c7365] dark:text-[#a89487] border-transparent dark:border-white/5 font-semibold';
       } else {
-        paidBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#15803d] text-white border-[#15803d] shadow-sm';
-        pendingBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-surface-container text-on-surface-variant border-outline-variant/30';
+        paidBtn.className = 'py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border-[#86efac] dark:border-[#166534] shadow-sm font-bold';
+        pendingBtn.className = 'py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#faeae0]/50 dark:bg-[#281e17] text-[#8c7365] dark:text-[#a89487] border-transparent dark:border-white/5 font-semibold';
       }
     }
   };
@@ -705,7 +720,7 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
     <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
       <div class="floating-modal-sheet rounded-t-[32px] p-0 slide-up flex flex-col max-h-[90vh] overflow-hidden">
         
-        <!-- Sticky Header with Title and Primary Top Action (Cadastrar / Salvar) -->
+        <!-- Sticky Header with Title and Primary Top Action (Cadastrar / Salvar no tom Verde da Home) -->
         <div class="sticky top-0 z-30 px-5 py-3.5 bg-surface dark:bg-[#241b15] border-b border-outline-variant/20 flex justify-between items-center shrink-0 rounded-t-[32px]">
           <div class="flex items-center gap-2.5">
             <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
@@ -716,9 +731,9 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
             </h3>
           </div>
 
-          <!-- Botão Principal no Topo -->
+          <!-- Botão Principal no Topo com o Verde Exato da Home (#309b57 / #124d27) -->
           <button type="submit" form="income-form" 
-                  class="px-4 py-2 bg-[#15803d] text-white font-bold rounded-xl text-xs shadow-md hover:opacity-95 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                  class="px-4 py-2 bg-[#309b57] dark:bg-[#124d27] text-white font-bold rounded-2xl text-xs shadow-sm hover:opacity-95 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
             <span class="material-symbols-outlined text-[16px]">save</span>
             <span>${income ? 'Salvar' : 'Cadastrar'}</span>
           </button>
@@ -727,70 +742,78 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
         <!-- Scrollable Form Body -->
         <div class="p-5 pb-8 overflow-y-auto space-y-4">
           <form id="income-form" onsubmit="window.handleSaveIncomeSubmit(event)" class="space-y-4">
-            <!-- Name -->
+            <!-- Name (Mesmo estilo visual refinado do campo de busca) -->
             <div class="space-y-1">
               <label class="text-xs font-bold text-on-surface block">Nome da Receita *</label>
               <input type="text" id="income-name" required placeholder="Ex: Salário, Freelance, Rendimentos" 
                      value="${income ? income.name : ''}" 
-                     class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 focus:border-[#15803d] focus:outline-none text-sm text-on-surface font-semibold transition-all">
+                     class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface placeholder:text-[#944a00]/50 dark:placeholder:text-[#ffb783]/50 shadow-sm transition-all">
             </div>
 
             <!-- Single Amount Field with Custom In-App Keypad Trigger -->
             <div class="space-y-1">
               <label class="text-xs font-bold text-on-surface block">Valor * (Toque para digitar)</label>
               <div id="income-amount-box" onclick="window.openKeypadForIncomeForm()" 
-                   class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 hover:border-[#15803d] cursor-pointer flex items-center justify-between shadow-inner transition-all">
-                <span id="income-amount-display" class="font-price-display text-xl font-extrabold text-[#15803d] dark:text-[#86efac]">
+                   class="w-full px-4 py-3 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 hover:border-[#944a00]/40 dark:hover:border-[#ffb783]/40 cursor-pointer flex items-center justify-between shadow-sm transition-all">
+                <span id="income-amount-display" class="font-price-display text-xl font-extrabold text-[#309b57] dark:text-[#4ade80]">
                   ${fmtCurrency(selectedAmount)}
                 </span>
-                <span class="material-symbols-outlined text-outline text-[20px]">dialpad</span>
+                <span class="material-symbols-outlined text-[#944a00]/70 dark:text-[#ffb783]/70 text-[20px]">dialpad</span>
               </div>
               <input type="hidden" id="income-amount" value="${selectedAmount}">
             </div>
 
-            <!-- Status Toggle: Prevista / Recebida -->
+            <!-- Status Toggle: Prevista / Recebida (Mesma linguagem visual dos botões dos cards) -->
             <div class="space-y-1">
               <label class="text-xs font-bold text-on-surface block">Status do Recebimento</label>
               <div class="grid grid-cols-2 gap-2">
                 <button type="button" id="income-status-pending-btn" onclick="window.setIncomeFormStatus('pending')" 
-                        class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'pending' ? 'bg-primary text-white border-primary shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
+                        class="py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'pending' ? 'bg-[#e0f2fe] dark:bg-[#0c2438] text-[#0284c7] dark:text-[#7dd3fc] border-[#7dd3fc] dark:border-[#075985] shadow-sm font-bold' : 'bg-[#faeae0]/50 dark:bg-[#281e17] text-[#8c7365] dark:text-[#a89487] border-transparent dark:border-white/5 font-semibold'}">
                   <span class="material-symbols-outlined text-[16px]">schedule</span>
                   <span>Prevista</span>
                 </button>
                 <button type="button" id="income-status-received-btn" onclick="window.setIncomeFormStatus('received')" 
-                        class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'received' ? 'bg-[#15803d] text-white border-[#15803d] shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
+                        class="py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'received' ? 'bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border-[#86efac] dark:border-[#166534] shadow-sm font-bold' : 'bg-[#faeae0]/50 dark:bg-[#281e17] text-[#8c7365] dark:text-[#a89487] border-transparent dark:border-white/5 font-semibold'}">
                   <span class="material-symbols-outlined text-[16px]">check_circle</span>
                   <span>Recebida</span>
                 </button>
               </div>
             </div>
 
-            <!-- Category Selector -->
+            <!-- Category Selector (Com fundo suave e cores específicas de cada categoria) -->
             <div class="space-y-1">
               <label class="text-xs font-bold text-on-surface block">Categoria</label>
-              <div id="income-categories-grid" class="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto p-1">
-                ${categories.map(cat => `
-                  <button type="button" onclick="window.setIncomeFormCategory('${cat.id}')" data-cat-id="${cat.id}"
-                          class="income-cat-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${selectedCategory === cat.id ? 'border-[#15803d] bg-[#15803d]/10 font-bold' : 'border-outline-variant/30 bg-surface-container text-on-surface-variant'}">
-                    <span class="material-symbols-outlined text-[18px]" style="color: ${cat.textColor}">${cat.icon}</span>
-                    <span class="text-[10px] text-on-surface truncate w-full text-center">${cat.name}</span>
-                  </button>
-                `).join('')}
+              <div id="income-categories-grid" class="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1">
+                ${categories.map(cat => {
+                  const styles = store.getCategoryCardStyles(cat);
+                  const isSelected = selectedCategory === cat.id;
+                  return `
+                    <button type="button" onclick="window.setIncomeFormCategory('${cat.id}')" data-cat-id="${cat.id}"
+                            class="category-select-btn p-2 rounded-2xl transition-all cursor-pointer flex flex-col items-center gap-1 relative shadow-xs ${isSelected ? 'ring-2 ring-[#309b57] dark:ring-[#4ade80] font-bold scale-[1.02]' : 'opacity-90 hover:opacity-100'}"
+                            style="--cat-bg-light: ${styles.cardBgLight}; --cat-border-light: ${isSelected ? cat.textColor : styles.cardBorderLight}; --cat-bg-dark: ${styles.cardBgDark}; --cat-border-dark: ${isSelected ? '#4ade80' : styles.cardBorderDark};">
+                      <div class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 shadow-xs" style="background-color: ${cat.bgColor}; color: ${cat.textColor}">
+                        <span class="material-symbols-outlined text-[17px]">${cat.icon}</span>
+                      </div>
+                      <span class="text-[10px] text-on-surface dark:text-[#fcf6f2] font-semibold truncate w-full text-center">${cat.name}</span>
+                      ${isSelected ? '<span class="check-indicator material-symbols-outlined absolute top-1 right-1 text-[13px] text-[#309b57] dark:text-[#4ade80]">check_circle</span>' : ''}
+                    </button>
+                  `;
+                }).join('')}
               </div>
             </div>
 
-            <!-- Expected Date & Payer -->
+            <!-- Expected Date & Payer (Mesmo estilo visual refinado do campo de busca) -->
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-1">
                 <label class="text-xs font-bold text-on-surface block">Data</label>
                 <input type="date" id="income-date" value="${income ? income.expectedDate : `${targetMonthKey}-05`}" 
-                       class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
+                       class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface shadow-sm transition-all">
               </div>
 
               <div class="space-y-1">
                 <label class="text-xs font-bold text-on-surface block">Pagador / Origem</label>
                 <input type="text" id="income-payer" placeholder="Ex: Empresa" value="${income ? (income.payer || '') : ''}" 
-                       class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
+                       class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface placeholder:text-[#944a00]/50 dark:placeholder:text-[#ffb783]/50 shadow-sm transition-all">
               </div>
             </div>
 
@@ -830,13 +853,20 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
 
   window.setIncomeFormCategory = function (catId) {
     selectedCategory = catId;
-    const btns = document.querySelectorAll('#income-categories-grid .income-cat-btn');
+    const btns = document.querySelectorAll('#income-categories-grid .category-select-btn');
     btns.forEach(btn => {
       const isSelected = btn.getAttribute('data-cat-id') === catId;
+      const check = btn.querySelector('.check-indicator');
       if (isSelected) {
-        btn.className = 'income-cat-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer border-[#15803d] bg-[#15803d]/10 font-bold';
+        btn.classList.add('ring-2', 'ring-[#309b57]', 'dark:ring-[#4ade80]', 'font-bold', 'scale-[1.02]');
+        btn.classList.remove('opacity-90');
+        if (!check) {
+          btn.insertAdjacentHTML('beforeend', '<span class="check-indicator material-symbols-outlined absolute top-1 right-1 text-[13px] text-[#309b57] dark:text-[#4ade80]">check_circle</span>');
+        }
       } else {
-        btn.className = 'income-cat-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer border-outline-variant/30 bg-surface-container text-on-surface-variant';
+        btn.classList.remove('ring-2', 'ring-[#309b57]', 'dark:ring-[#4ade80]', 'font-bold', 'scale-[1.02]');
+        btn.classList.add('opacity-90');
+        if (check) check.remove();
       }
     });
   };
@@ -847,11 +877,11 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
     const receivedBtn = document.getElementById('income-status-received-btn');
     if (pendingBtn && receivedBtn) {
       if (status === 'pending') {
-        pendingBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-primary text-white border-primary shadow-sm';
-        receivedBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-surface-container text-on-surface-variant border-outline-variant/30';
+        pendingBtn.className = 'py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#e0f2fe] dark:bg-[#0c2438] text-[#0284c7] dark:text-[#7dd3fc] border-[#7dd3fc] dark:border-[#075985] shadow-sm font-bold';
+        receivedBtn.className = 'py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#faeae0]/50 dark:bg-[#281e17] text-[#8c7365] dark:text-[#a89487] border-transparent dark:border-white/5 font-semibold';
       } else {
-        receivedBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#15803d] text-white border-[#15803d] shadow-sm';
-        pendingBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-surface-container text-on-surface-variant border-outline-variant/30';
+        receivedBtn.className = 'py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border-[#86efac] dark:border-[#166534] shadow-sm font-bold';
+        pendingBtn.className = 'py-2.5 px-3 rounded-2xl border text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#faeae0]/50 dark:bg-[#281e17] text-[#8c7365] dark:text-[#a89487] border-transparent dark:border-white/5 font-semibold';
       }
     }
   };
@@ -986,7 +1016,7 @@ window.openCategoryEditModal = function (categoryId = null, defaultType = 'expen
             <label class="text-xs font-bold text-on-surface block">Nome da Categoria *</label>
             <input type="text" id="cat-name-input" required placeholder="Ex: Farmácia, Viagens, Investimentos" 
                    value="${category ? category.name : ''}" 
-                   class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 focus:border-primary focus:outline-none text-sm text-on-surface font-semibold">
+                   class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface placeholder:text-[#944a00]/50 dark:placeholder:text-[#ffb783]/50 shadow-sm transition-all">
           </div>
 
           <!-- Type -->
@@ -994,12 +1024,12 @@ window.openCategoryEditModal = function (categoryId = null, defaultType = 'expen
             <label class="text-xs font-bold text-on-surface block">Tipo</label>
             <div class="grid grid-cols-2 gap-2">
               <button type="button" id="cat-type-expense-btn" onclick="window.setCatModalType('expense')" 
-                      class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedType === 'expense' ? 'bg-primary text-white border-primary shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
+                      class="py-2.5 px-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedType === 'expense' ? 'bg-[#ea7355] dark:bg-[#852f1b] text-white border-[#ea7355] dark:border-[#852f1b] shadow-sm' : 'bg-[#faeae0]/50 dark:bg-[#281e17] text-[#8c7365] dark:text-[#a89487] border-transparent dark:border-white/5 font-semibold'}">
                 <span class="material-symbols-outlined text-[16px]">trending_down</span>
                 <span>Despesa</span>
               </button>
               <button type="button" id="cat-type-income-btn" onclick="window.setCatModalType('income')" 
-                      class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedType === 'income' ? 'bg-secondary text-white border-secondary shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
+                      class="py-2.5 px-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedType === 'income' ? 'bg-[#309b57] dark:bg-[#124d27] text-white border-[#309b57] dark:border-[#124d27] shadow-sm' : 'bg-[#faeae0]/50 dark:bg-[#281e17] text-[#8c7365] dark:text-[#a89487] border-transparent dark:border-white/5 font-semibold'}">
                 <span class="material-symbols-outlined text-[16px]">trending_up</span>
                 <span>Receita</span>
               </button>
@@ -1252,7 +1282,7 @@ window.openOnboardingModal = function () {
 
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-on-surface block">Seu Nome *</label>
-            <input type="text" id="onboarding-name-input" placeholder="Ex: Paulo Palhares" class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/50 focus:border-primary focus:outline-none text-sm text-on-surface font-semibold" value="${window.financeStore.state.userName || ''}">
+            <input type="text" id="onboarding-name-input" placeholder="Ex: Paulo Palhares" class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface placeholder:text-[#944a00]/50 dark:placeholder:text-[#ffb783]/50 shadow-sm transition-all" value="${window.financeStore.state.userName || ''}">
           </div>
 
           <button type="button" onclick="window.submitOnboarding()" class="w-full py-3.5 bg-primary text-white font-bold rounded-2xl text-sm shadow-md hover:opacity-95 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer">
@@ -1355,7 +1385,7 @@ window.openProfileEditModal = function () {
 
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-on-surface block">Nome</label>
-            <input type="text" id="edit-profile-name" value="${store.state.userName || ''}" class="w-full px-4 py-2.5 bg-surface-container rounded-xl border border-outline-variant/50 focus:border-primary focus:outline-none text-sm text-on-surface font-semibold">
+            <input type="text" id="edit-profile-name" value="${store.state.userName || ''}" class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface placeholder:text-[#944a00]/50 dark:placeholder:text-[#ffb783]/50 shadow-sm transition-all">
           </div>
 
           <button type="button" onclick="window.saveProfileEdit()" class="w-full py-3 bg-primary text-white font-bold rounded-xl text-xs shadow-md hover:opacity-95 active:scale-98 transition-all cursor-pointer">
