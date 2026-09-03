@@ -42,6 +42,99 @@ window.showToast = function (message, type = 'info') {
 };
 
 // ==========================================================================
+// 0. Notification Center Modal (Empty State & Pending Items List)
+// ==========================================================================
+window.openNotificationCenterModal = function () {
+  const container = document.getElementById('modal-container');
+  if (!container) return;
+
+  const store = window.financeStore;
+  const allExpenses = store.state.expenses || [];
+  const todayStr = (window.NotificationService ? window.NotificationService.getLocalDateString(0) : new Date().toISOString().split('T')[0]);
+  const tomorrowStr = (window.NotificationService ? window.NotificationService.getLocalDateString(1) : new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+
+  const upcomingItems = [];
+  for (const exp of allExpenses) {
+    if (exp.status === 'paid' || exp.status === 'cancelled' || !exp.dueDate) continue;
+    if (exp.dueDate === todayStr) {
+      upcomingItems.push({ expense: exp, type: 'today', label: 'Vence hoje', color: 'text-[#dc2626] dark:text-[#ff8a80] bg-[#fee2e2] dark:bg-[#3b1212] border-[#fca5a5] dark:border-[#7f1d1d]' });
+    } else if (exp.dueDate === tomorrowStr) {
+      upcomingItems.push({ expense: exp, type: 'tomorrow', label: 'Vence amanhã', color: 'text-primary dark:text-[#ffb783] bg-primary/10 border-primary/30' });
+    }
+  }
+
+  const fmtCurrency = (val) => Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  container.innerHTML = `
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
+      <div class="floating-modal-dialog w-full max-w-[420px] p-5 rounded-[28px] slide-up flex flex-col gap-4 border border-outline-variant/30 shadow-2xl max-h-[85vh] overflow-hidden">
+        
+        <!-- Header -->
+        <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">notifications</span>
+            </div>
+            <h3 class="font-bold text-sm text-on-surface">Central de Avisos</h3>
+          </div>
+          <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="overflow-y-auto space-y-3 max-h-[60vh] pr-0.5">
+          ${upcomingItems.length > 0 ? `
+            <p class="text-xs text-on-surface-variant font-medium">Você possui as seguintes despesas pendentes:</p>
+            ${upcomingItems.map(item => {
+              const cat = store.getCategoryById(item.expense.categoryId);
+              return `
+                <div onclick="window.financeStore.openMonthDetail('${item.expense.monthKey}'); window.closeModal();" 
+                     class="p-3.5 rounded-2xl bg-surface-container/70 dark:bg-white/5 border border-outline-variant/30 hover:border-primary/50 transition-all flex items-center justify-between gap-3 cursor-pointer group active:scale-[0.99]">
+                  <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style="background-color: ${cat.bgColor}; color: ${cat.textColor}">
+                      <span class="material-symbols-outlined text-[18px]">${cat.icon}</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <h4 class="font-bold text-xs text-on-surface truncate group-hover:text-primary transition-colors">${item.expense.name}</h4>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${item.color}">${item.label}</span>
+                        <span class="text-[10px] text-on-surface-variant font-medium truncate">${item.expense.payee || cat.name}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <span class="font-price-display text-sm font-extrabold text-on-surface block leading-tight">
+                      ${fmtCurrency(item.expense.amount)}
+                    </span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          ` : `
+            <!-- Empty State -->
+            <div class="py-8 px-4 text-center flex flex-col items-center justify-center gap-2.5">
+              <div class="w-14 h-14 rounded-2xl bg-surface-container dark:bg-white/5 text-outline flex items-center justify-center shadow-inner">
+                <span class="material-symbols-outlined text-3xl text-primary">check_circle</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm text-on-surface">Nenhuma notificação</h4>
+                <p class="text-xs text-on-surface-variant mt-1 leading-relaxed max-w-[260px] mx-auto">
+                  Você não possui despesas pendentes com vencimento para hoje ou amanhã.
+                </p>
+              </div>
+              <button type="button" onclick="window.closeModal()" class="mt-2 px-5 py-2.5 bg-surface-container hover:bg-surface-variant text-on-surface rounded-xl text-xs font-bold transition-all cursor-pointer">
+                Entendi
+              </button>
+            </div>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// ==========================================================================
 // 1. In-App Custom Numeric Keypad (In-Place DOM Updates - Zero Flickering)
 // ==========================================================================
 window.openKeypad = function ({ initialValue = 0, onConfirm, title = 'Digitar Valor' }) {
@@ -164,9 +257,9 @@ window.openStatusPickerModal = function ({ id, type = 'expense', currentStatus =
 
         <div class="flex flex-col gap-2.5 pt-1">
           ${isExpense ? `
-            <!-- Opção Pago: VERDE -->
+            <!-- Opção Pago: VERDE com fundo verde real -->
             <button onclick="window.selectQuickStatus('${id}', 'expense', 'paid')" 
-                    class="w-full py-3.5 px-4 rounded-2xl flex items-center justify-between font-bold text-sm transition-all cursor-pointer ${currentStatus === 'paid' ? 'bg-secondary text-white shadow-md' : 'bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30'}">
+                    class="w-full py-3.5 px-4 rounded-2xl flex items-center justify-between font-bold text-sm transition-all cursor-pointer ${currentStatus === 'paid' ? 'bg-[#15803d] text-white shadow-md' : 'bg-[#dcfce7] dark:bg-[#0f2e1b] hover:bg-[#bbf7d0] dark:hover:bg-[#154527] text-[#15803d] dark:text-[#86efac] border border-[#86efac] dark:border-[#166534]'}">
               <span class="flex items-center gap-2.5">
                 <span class="material-symbols-outlined text-[22px]">check_circle</span>
                 <span>Pago</span>
@@ -174,9 +267,9 @@ window.openStatusPickerModal = function ({ id, type = 'expense', currentStatus =
               ${currentStatus === 'paid' ? '<span class="material-symbols-outlined text-[20px]">done</span>' : ''}
             </button>
 
-            <!-- Opção Pendente: VERMELHO -->
+            <!-- Opção Pendente: VERMELHO com fundo vermelho real -->
             <button onclick="window.selectQuickStatus('${id}', 'expense', 'pending')" 
-                    class="w-full py-3.5 px-4 rounded-2xl flex items-center justify-between font-bold text-sm transition-all cursor-pointer ${currentStatus === 'pending' ? 'bg-[#dc2626] text-white shadow-md' : 'bg-[#dc2626]/15 hover:bg-[#dc2626]/25 text-[#dc2626] border border-[#dc2626]/30'}">
+                    class="w-full py-3.5 px-4 rounded-2xl flex items-center justify-between font-bold text-sm transition-all cursor-pointer ${currentStatus === 'pending' ? 'bg-[#dc2626] text-white shadow-md' : 'bg-[#fee2e2] dark:bg-[#3b1212] hover:bg-[#fecaca] dark:hover:bg-[#521b1b] text-[#dc2626] dark:text-[#fca5a5] border border-[#fca5a5] dark:border-[#7f1d1d]'}">
               <span class="flex items-center gap-2.5">
                 <span class="material-symbols-outlined text-[22px]">schedule</span>
                 <span>Pendente</span>
@@ -184,9 +277,9 @@ window.openStatusPickerModal = function ({ id, type = 'expense', currentStatus =
               ${currentStatus === 'pending' ? '<span class="material-symbols-outlined text-[20px]">done</span>' : ''}
             </button>
           ` : `
-            <!-- Opção Recebida: VERDE -->
+            <!-- Opção Recebida: VERDE com fundo verde real -->
             <button onclick="window.selectQuickStatus('${id}', 'income', 'received')" 
-                    class="w-full py-3.5 px-4 rounded-2xl flex items-center justify-between font-bold text-sm transition-all cursor-pointer ${currentStatus === 'received' ? 'bg-secondary text-white shadow-md' : 'bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30'}">
+                    class="w-full py-3.5 px-4 rounded-2xl flex items-center justify-between font-bold text-sm transition-all cursor-pointer ${currentStatus === 'received' ? 'bg-[#15803d] text-white shadow-md' : 'bg-[#dcfce7] dark:bg-[#0f2e1b] hover:bg-[#bbf7d0] dark:hover:bg-[#154527] text-[#15803d] dark:text-[#86efac] border border-[#86efac] dark:border-[#166534]'}">
               <span class="flex items-center gap-2.5">
                 <span class="material-symbols-outlined text-[22px]">check_circle</span>
                 <span>Recebida</span>
@@ -194,9 +287,9 @@ window.openStatusPickerModal = function ({ id, type = 'expense', currentStatus =
               ${currentStatus === 'received' ? '<span class="material-symbols-outlined text-[20px]">done</span>' : ''}
             </button>
 
-            <!-- Opção Prevista: AZUL/PRIMARY -->
+            <!-- Opção Prevista: AZUL com fundo azul real -->
             <button onclick="window.selectQuickStatus('${id}', 'income', 'pending')" 
-                    class="w-full py-3.5 px-4 rounded-2xl flex items-center justify-between font-bold text-sm transition-all cursor-pointer ${currentStatus === 'pending' ? 'bg-primary text-white shadow-md' : 'bg-primary/15 hover:bg-primary/25 text-primary border border-primary/30'}">
+                    class="w-full py-3.5 px-4 rounded-2xl flex items-center justify-between font-bold text-sm transition-all cursor-pointer ${currentStatus === 'pending' ? 'bg-[#0284c7] text-white shadow-md' : 'bg-[#e0f2fe] dark:bg-[#0c2438] hover:bg-[#bae6fd] dark:hover:bg-[#113a5a] text-[#0284c7] dark:text-[#7dd3fc] border border-[#7dd3fc] dark:border-[#075985]'}">
               <span class="flex items-center gap-2.5">
                 <span class="material-symbols-outlined text-[22px]">schedule</span>
                 <span>Prevista</span>
@@ -244,161 +337,171 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
 
   container.innerHTML = `
     <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
-      <div class="floating-modal-sheet p-5 pb-8 slide-up flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="floating-modal-sheet rounded-t-[32px] p-0 slide-up flex flex-col max-h-[90vh] overflow-hidden">
         
-        <!-- Header -->
-        <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20">
-          <h3 class="font-headline-md text-base font-bold text-on-surface">
-            ${expense ? 'Editar Despesa' : 'Nova Despesa'}
-          </h3>
-          <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer">
-            <span class="material-symbols-outlined text-[20px]">close</span>
+        <!-- Sticky Header with Title and Primary Top Action (Cadastrar / Salvar) -->
+        <div class="sticky top-0 z-30 px-5 py-3.5 bg-surface/95 dark:bg-[#201813]/95 backdrop-blur-md border-b border-outline-variant/20 flex justify-between items-center shrink-0 rounded-t-[32px]">
+          <div class="flex items-center gap-2.5">
+            <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+            <h3 class="font-headline-md text-base font-bold text-on-surface">
+              ${expense ? 'Editar Despesa' : 'Nova Despesa'}
+            </h3>
+          </div>
+
+          <!-- Botão Principal no Topo -->
+          <button type="submit" form="expense-form" 
+                  class="px-4 py-2 bg-[#dc2626] text-white font-bold rounded-xl text-xs shadow-md hover:opacity-95 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">save</span>
+            <span>${expense ? 'Salvar' : 'Cadastrar'}</span>
           </button>
         </div>
 
-        <form id="expense-form" onsubmit="window.handleSaveExpenseSubmit(event)" class="space-y-4">
-          <!-- Name -->
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-on-surface block">Nome da Despesa *</label>
-            <input type="text" id="expense-name" required placeholder="Ex: Supermercado, Aluguel, Farmácia" 
-                   value="${expense ? expense.name : ''}" 
-                   class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 focus:border-[#dc2626] focus:outline-none text-sm text-on-surface font-semibold">
-          </div>
-
-          <!-- Single Amount Field with Custom In-App Keypad Trigger -->
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-on-surface block">Valor * (Toque para digitar)</label>
-            <div onclick="window.openKeypadForExpenseForm()" 
-                 class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 hover:border-[#dc2626] cursor-pointer flex items-center justify-between shadow-inner">
-              <span id="expense-amount-display" class="font-price-display text-xl font-extrabold text-[#dc2626]">
-                ${fmtCurrency(selectedAmount)}
-              </span>
-              <span class="material-symbols-outlined text-outline text-[20px]">dialpad</span>
+        <!-- Scrollable Form Body -->
+        <div class="p-5 pb-8 overflow-y-auto space-y-4">
+          <form id="expense-form" onsubmit="window.handleSaveExpenseSubmit(event)" class="space-y-4">
+            <!-- Name -->
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface block">Nome da Despesa *</label>
+              <input type="text" id="expense-name" required placeholder="Ex: Supermercado, Aluguel, Farmácia" 
+                     value="${expense ? expense.name : ''}" 
+                     class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 focus:border-[#dc2626] focus:outline-none text-sm text-on-surface font-semibold transition-all">
             </div>
-            <input type="hidden" id="expense-amount" value="${selectedAmount}">
-          </div>
 
-          <!-- Status Toggle: Pendente / Pago -->
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-on-surface block">Status do Pagamento</label>
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button" id="expense-status-pending-btn" onclick="window.setExpenseFormStatus('pending')" 
-                      class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'pending' ? 'bg-[#dc2626] text-white border-[#dc2626] shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
-                <span class="material-symbols-outlined text-[16px]">schedule</span>
-                <span>Pendente</span>
-              </button>
-              <button type="button" id="expense-status-paid-btn" onclick="window.setExpenseFormStatus('paid')" 
-                      class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'paid' ? 'bg-secondary text-white border-secondary shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
-                <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                <span>Pago</span>
-              </button>
+            <!-- Single Amount Field with Custom In-App Keypad Trigger -->
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface block">Valor * (Toque para digitar)</label>
+              <div id="expense-amount-box" onclick="window.openKeypadForExpenseForm()" 
+                   class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 hover:border-[#dc2626] cursor-pointer flex items-center justify-between shadow-inner transition-all">
+                <span id="expense-amount-display" class="font-price-display text-xl font-extrabold text-[#dc2626]">
+                  ${fmtCurrency(selectedAmount)}
+                </span>
+                <span class="material-symbols-outlined text-outline text-[20px]">dialpad</span>
+              </div>
+              <input type="hidden" id="expense-amount" value="${selectedAmount}">
             </div>
-          </div>
 
-          <!-- Category Selector (Direct DOM Selection - No Input Wiping) -->
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-on-surface block">Categoria</label>
-            <div id="expense-categories-grid" class="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto p-1">
-              ${categories.map(cat => `
-                <button type="button" onclick="window.setExpenseFormCategory('${cat.id}')" data-cat-id="${cat.id}"
-                        class="category-select-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${selectedCategory === cat.id ? 'border-[#dc2626] bg-[#dc2626]/10 font-bold' : 'border-outline-variant/30 bg-surface-container text-on-surface-variant'}">
-                  <span class="material-symbols-outlined text-[18px]" style="color: ${cat.textColor}">${cat.icon}</span>
-                  <span class="text-[10px] text-on-surface truncate w-full text-center">${cat.name}</span>
+            <!-- Status Toggle: Pendente / Pago -->
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface block">Status do Pagamento</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" id="expense-status-pending-btn" onclick="window.setExpenseFormStatus('pending')" 
+                        class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'pending' ? 'bg-[#dc2626] text-white border-[#dc2626] shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
+                  <span class="material-symbols-outlined text-[16px]">schedule</span>
+                  <span>Pendente</span>
                 </button>
-              `).join('')}
+                <button type="button" id="expense-status-paid-btn" onclick="window.setExpenseFormStatus('paid')" 
+                        class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'paid' ? 'bg-[#15803d] text-white border-[#15803d] shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
+                  <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                  <span>Pago</span>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <!-- Due Date & Payee -->
-          <div class="grid grid-cols-2 gap-3">
+            <!-- Category Selector (Direct DOM Selection - No Input Wiping) -->
             <div class="space-y-1">
-              <label class="text-xs font-bold text-on-surface block">Vencimento</label>
-              <input type="date" id="expense-date" value="${expense ? expense.dueDate : `${targetMonthKey}-10`}" 
-                     class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
-            </div>
-
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-on-surface block">Recebedor / Local</label>
-              <input type="text" id="expense-payee" placeholder="Ex: Imobiliária" value="${expense ? (expense.payee || '') : ''}" 
-                     class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
-            </div>
-          </div>
-
-          <!-- Switches: Despesa Parcelada & Despesa Recorrente (Only when creating new) -->
-          ${!expense ? `
-            <div class="pt-2 border-t border-outline-variant/20 space-y-3">
-              <!-- Switch Despesa Parcelada -->
-              <div class="p-3 bg-surface-container rounded-2xl border border-outline-variant/30 flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <span class="material-symbols-outlined text-primary text-[20px]">credit_card</span>
-                  <div>
-                    <h4 class="font-bold text-xs text-on-surface">Despesa parcelada</h4>
-                    <span class="text-[10px] text-on-surface-variant">Dividir compra em vários meses</span>
-                  </div>
-                </div>
-                <label class="switch">
-                  <input type="checkbox" id="expense-is-installment-toggle" onchange="window.toggleExpenseInstallmentFields(this.checked)">
-                  <span class="slider"></span>
-                </label>
-              </div>
-
-              <!-- Installment Config Fields (Initially Hidden) -->
-              <div id="expense-installment-fields" class="hidden p-3 bg-primary-fixed/30 rounded-2xl border border-primary-fixed-dim/60 space-y-3">
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-on-surface block">Total de Parcelas</label>
-                    <input type="number" id="expense-total-installments" min="2" max="96" value="10" 
-                           class="w-full px-3 py-2 bg-surface rounded-xl border border-outline-variant/40 text-xs text-on-surface font-bold">
-                  </div>
-                  <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-on-surface block">Parcela Atual</label>
-                    <input type="number" id="expense-current-installment" min="1" max="96" value="1" 
-                           class="w-full px-3 py-2 bg-surface rounded-xl border border-outline-variant/40 text-xs text-on-surface font-bold">
-                  </div>
-                </div>
-                <p class="text-[10px] text-on-surface-variant leading-tight">
-                  Se a parcela atual for intermediária (ex: 4/10 em Setembro), as anteriores (1 a 3) serão organizadas nos meses passados e as futuras nos meses seguintes.
-                </p>
-              </div>
-
-              <!-- Switch Despesa Recorrente -->
-              <div class="p-3 bg-surface-container rounded-2xl border border-outline-variant/30 flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <span class="material-symbols-outlined text-secondary text-[20px]">repeat</span>
-                  <div>
-                    <h4 class="font-bold text-xs text-on-surface">Despesa recorrente</h4>
-                    <span class="text-[10px] text-on-surface-variant">Repetir automaticamente nos próximos meses</span>
-                  </div>
-                </div>
-                <label class="switch">
-                  <input type="checkbox" id="expense-is-recurring-toggle" onchange="window.toggleExpenseRecurringFields(this.checked)">
-                  <span class="slider"></span>
-                </label>
-              </div>
-
-              <!-- Recurring Config Fields (Initially Hidden) -->
-              <div id="expense-recurring-fields" class="hidden p-3 bg-secondary-fixed/30 rounded-2xl border border-secondary-fixed-dim/60 space-y-2">
-                <label class="text-[11px] font-bold text-on-surface block">Frequência</label>
-                <select id="expense-recurring-frequency" class="w-full px-3 py-2 bg-surface rounded-xl border border-outline-variant/40 text-xs text-on-surface font-bold">
-                  <option value="monthly" selected>Mensal (Próximos 12 meses)</option>
-                </select>
+              <label class="text-xs font-bold text-on-surface block">Categoria</label>
+              <div id="expense-categories-grid" class="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto p-1">
+                ${categories.map(cat => `
+                  <button type="button" onclick="window.setExpenseFormCategory('${cat.id}')" data-cat-id="${cat.id}"
+                          class="category-select-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${selectedCategory === cat.id ? 'border-[#dc2626] bg-[#dc2626]/10 font-bold' : 'border-outline-variant/30 bg-surface-container text-on-surface-variant'}">
+                    <span class="material-symbols-outlined text-[18px]" style="color: ${cat.textColor}">${cat.icon}</span>
+                    <span class="text-[10px] text-on-surface truncate w-full text-center">${cat.name}</span>
+                  </button>
+                `).join('')}
               </div>
             </div>
-          ` : ''}
 
-          <!-- Submit & Delete Actions -->
-          <div class="flex gap-2.5 pt-2">
-            ${expense ? `
-              <button type="button" onclick="window.handleDeleteExpense('${expense.id}')" class="p-3 bg-error-container text-error rounded-2xl font-bold text-xs flex items-center justify-center cursor-pointer">
-                <span class="material-symbols-outlined text-[20px]">delete</span>
-              </button>
+            <!-- Due Date & Payee -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-on-surface block">Vencimento</label>
+                <input type="date" id="expense-date" value="${expense ? expense.dueDate : `${targetMonthKey}-10`}" 
+                       class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-on-surface block">Recebedor / Local</label>
+                <input type="text" id="expense-payee" placeholder="Ex: Imobiliária" value="${expense ? (expense.payee || '') : ''}" 
+                       class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
+              </div>
+            </div>
+
+            <!-- Switches: Despesa Parcelada & Despesa Recorrente (Only when creating new) -->
+            ${!expense ? `
+              <div class="pt-2 border-t border-outline-variant/20 space-y-3">
+                <!-- Switch Despesa Parcelada -->
+                <div class="p-3 bg-surface-container rounded-2xl border border-outline-variant/30 flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <span class="material-symbols-outlined text-primary text-[20px]">credit_card</span>
+                    <div>
+                      <h4 class="font-bold text-xs text-on-surface">Despesa parcelada</h4>
+                      <span class="text-[10px] text-on-surface-variant">Dividir compra em vários meses</span>
+                    </div>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="expense-is-installment-toggle" onchange="window.toggleExpenseInstallmentFields(this.checked)">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+
+                <!-- Installment Config Fields (Initially Hidden) -->
+                <div id="expense-installment-fields" class="hidden p-3 bg-primary-fixed/30 rounded-2xl border border-primary-fixed-dim/60 space-y-3">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                      <label class="text-[11px] font-bold text-on-surface block">Total de Parcelas</label>
+                      <input type="number" id="expense-total-installments" min="2" max="96" value="10" 
+                             class="w-full px-3 py-2 bg-surface rounded-xl border border-outline-variant/40 text-xs text-on-surface font-bold">
+                    </div>
+                    <div class="space-y-1">
+                      <label class="text-[11px] font-bold text-on-surface block">Parcela Atual</label>
+                      <input type="number" id="expense-current-installment" min="1" max="96" value="1" 
+                             class="w-full px-3 py-2 bg-surface rounded-xl border border-outline-variant/40 text-xs text-on-surface font-bold">
+                    </div>
+                  </div>
+                  <p class="text-[10px] text-on-surface-variant leading-tight">
+                    Se a parcela atual for intermediária (ex: 4/10 em Setembro), as anteriores (1 a 3) serão organizadas nos meses passados e as futuras nos meses seguintes.
+                  </p>
+                </div>
+
+                <!-- Switch Despesa Recorrente -->
+                <div class="p-3 bg-surface-container rounded-2xl border border-outline-variant/30 flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <span class="material-symbols-outlined text-secondary text-[20px]">repeat</span>
+                    <div>
+                      <h4 class="font-bold text-xs text-on-surface">Despesa recorrente</h4>
+                      <span class="text-[10px] text-on-surface-variant">Repetir automaticamente nos próximos meses</span>
+                    </div>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="expense-is-recurring-toggle" onchange="window.toggleExpenseRecurringFields(this.checked)">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+
+                <!-- Recurring Config Fields (Initially Hidden) -->
+                <div id="expense-recurring-fields" class="hidden p-3 bg-secondary-fixed/30 rounded-2xl border border-secondary-fixed-dim/60 space-y-2">
+                  <label class="text-[11px] font-bold text-on-surface block">Frequência</label>
+                  <select id="expense-recurring-frequency" class="w-full px-3 py-2 bg-surface rounded-xl border border-outline-variant/40 text-xs text-on-surface font-bold">
+                    <option value="monthly" selected>Mensal (Próximos 12 meses)</option>
+                  </select>
+                </div>
+              </div>
             ` : ''}
-            <button type="submit" class="flex-1 py-3.5 bg-[#dc2626] text-white font-bold rounded-2xl text-xs shadow-md hover:opacity-95 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer">
-              <span class="material-symbols-outlined text-[18px]">save</span>
-              <span>${expense ? 'Salvar Alterações' : 'Cadastrar Despesa'}</span>
-            </button>
-          </div>
-        </form>
+
+            <!-- Delete Action (Only for existing expenses) -->
+            ${expense ? `
+              <div class="pt-2">
+                <button type="button" onclick="window.handleDeleteExpense('${expense.id}')" 
+                        class="w-full py-3 bg-error-container text-error rounded-2xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer hover:opacity-90 active:scale-98 transition-all">
+                  <span class="material-symbols-outlined text-[18px]">delete</span>
+                  <span>Excluir Despesa</span>
+                </button>
+              </div>
+            ` : ''}
+          </form>
+        </div>
       </div>
     </div>
   `;
@@ -413,6 +516,10 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
         if (display) display.innerText = fmtCurrency(selectedAmount);
         const input = document.getElementById('expense-amount');
         if (input) input.value = selectedAmount;
+        const amountBox = document.getElementById('expense-amount-box');
+        if (amountBox && selectedAmount > 0) {
+          amountBox.classList.remove('border-error', 'ring-2', 'ring-error/20');
+        }
       }
     });
   };
@@ -439,7 +546,7 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
         pendingBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#dc2626] text-white border-[#dc2626] shadow-sm';
         paidBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-surface-container text-on-surface-variant border-outline-variant/30';
       } else {
-        paidBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-secondary text-white border-secondary shadow-sm';
+        paidBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#15803d] text-white border-[#15803d] shadow-sm';
         pendingBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-surface-container text-on-surface-variant border-outline-variant/30';
       }
     }
@@ -479,16 +586,28 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
 
   window.handleSaveExpenseSubmit = function (e) {
     e.preventDefault();
-    const name = (document.getElementById('expense-name')?.value || '').trim();
+    const nameInput = document.getElementById('expense-name');
+    const name = (nameInput?.value || '').trim();
     const dueDate = document.getElementById('expense-date')?.value || `${targetMonthKey}-10`;
     const payee = (document.getElementById('expense-payee')?.value || '').trim();
     const dayStr = dueDate.split('-')[2] || '10';
 
     if (!name) {
+      if (nameInput) {
+        nameInput.classList.add('border-error', 'ring-2', 'ring-error/20');
+        if (typeof nameInput.focus === 'function') nameInput.focus();
+      }
       window.showToast('Por favor, informe o nome da despesa.', 'error');
       return;
+    } else if (nameInput) {
+      nameInput.classList.remove('border-error', 'ring-2', 'ring-error/20');
     }
+
     if (selectedAmount <= 0) {
+      const amountBox = document.getElementById('expense-amount-box');
+      if (amountBox) {
+        amountBox.classList.add('border-error', 'ring-2', 'ring-error/20');
+      }
       window.showToast('Por favor, digite um valor maior que zero.', 'error');
       return;
     }
@@ -512,7 +631,7 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
       
       store.createInstallmentPlan({
         description: name,
-        totalAmount: selectedAmount * totalCount, // selectedAmount represents installment value
+        totalAmount: selectedAmount * totalCount,
         totalInstallments: totalCount,
         currentInstallment: currentK,
         startMonthKey: targetMonthKey,
@@ -547,6 +666,11 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
       window.showToast('Despesa cadastrada com sucesso!', 'success');
     }
 
+    // Trigger in-app notification check if new pending expense is due today/tomorrow
+    if (window.NotificationService && typeof window.NotificationService.checkDueDates === 'function') {
+      setTimeout(() => window.NotificationService.checkDueDates(), 200);
+    }
+
     window.closeModal();
   };
 
@@ -560,7 +684,7 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
 };
 
 // ==========================================================================
-// 4. Income Modal (Input Preserved - Direct DOM State Updates)
+// 4. Income Modal (Input Preserved - Sticky Header with Top Submit Action)
 // ==========================================================================
 window.openIncomeModal = function (monthKey, incomeId = null) {
   const container = document.getElementById('modal-container');
@@ -579,99 +703,109 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
 
   container.innerHTML = `
     <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
-      <div class="floating-modal-sheet p-5 pb-8 slide-up flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="floating-modal-sheet rounded-t-[32px] p-0 slide-up flex flex-col max-h-[90vh] overflow-hidden">
         
-        <!-- Header -->
-        <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20">
-          <h3 class="font-headline-md text-base font-bold text-on-surface">
-            ${income ? 'Editar Receita' : 'Nova Receita'}
-          </h3>
-          <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer">
-            <span class="material-symbols-outlined text-[20px]">close</span>
+        <!-- Sticky Header with Title and Primary Top Action (Cadastrar / Salvar) -->
+        <div class="sticky top-0 z-30 px-5 py-3.5 bg-surface/95 dark:bg-[#201813]/95 backdrop-blur-md border-b border-outline-variant/20 flex justify-between items-center shrink-0 rounded-t-[32px]">
+          <div class="flex items-center gap-2.5">
+            <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+            <h3 class="font-headline-md text-base font-bold text-on-surface">
+              ${income ? 'Editar Receita' : 'Nova Receita'}
+            </h3>
+          </div>
+
+          <!-- Botão Principal no Topo -->
+          <button type="submit" form="income-form" 
+                  class="px-4 py-2 bg-[#15803d] text-white font-bold rounded-xl text-xs shadow-md hover:opacity-95 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">save</span>
+            <span>${income ? 'Salvar' : 'Cadastrar'}</span>
           </button>
         </div>
 
-        <form id="income-form" onsubmit="window.handleSaveIncomeSubmit(event)" class="space-y-4">
-          <!-- Name -->
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-on-surface block">Nome da Receita *</label>
-            <input type="text" id="income-name" required placeholder="Ex: Salário, Freelance, Rendimentos" 
-                   value="${income ? income.name : ''}" 
-                   class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 focus:border-secondary focus:outline-none text-sm text-on-surface font-semibold">
-          </div>
-
-          <!-- Single Amount Field with Custom In-App Keypad Trigger -->
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-on-surface block">Valor * (Toque para digitar)</label>
-            <div onclick="window.openKeypadForIncomeForm()" 
-                 class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 hover:border-secondary cursor-pointer flex items-center justify-between shadow-inner">
-              <span id="income-amount-display" class="font-price-display text-xl font-extrabold text-secondary">
-                ${fmtCurrency(selectedAmount)}
-              </span>
-              <span class="material-symbols-outlined text-outline text-[20px]">dialpad</span>
+        <!-- Scrollable Form Body -->
+        <div class="p-5 pb-8 overflow-y-auto space-y-4">
+          <form id="income-form" onsubmit="window.handleSaveIncomeSubmit(event)" class="space-y-4">
+            <!-- Name -->
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface block">Nome da Receita *</label>
+              <input type="text" id="income-name" required placeholder="Ex: Salário, Freelance, Rendimentos" 
+                     value="${income ? income.name : ''}" 
+                     class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 focus:border-[#15803d] focus:outline-none text-sm text-on-surface font-semibold transition-all">
             </div>
-            <input type="hidden" id="income-amount" value="${selectedAmount}">
-          </div>
 
-          <!-- Status Toggle: Prevista / Recebida -->
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-on-surface block">Status do Recebimento</label>
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button" id="income-status-pending-btn" onclick="window.setIncomeFormStatus('pending')" 
-                      class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'pending' ? 'bg-primary text-white border-primary shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
-                <span class="material-symbols-outlined text-[16px]">schedule</span>
-                <span>Prevista</span>
-              </button>
-              <button type="button" id="income-status-received-btn" onclick="window.setIncomeFormStatus('received')" 
-                      class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'received' ? 'bg-secondary text-white border-secondary shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
-                <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                <span>Recebida</span>
-              </button>
+            <!-- Single Amount Field with Custom In-App Keypad Trigger -->
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface block">Valor * (Toque para digitar)</label>
+              <div id="income-amount-box" onclick="window.openKeypadForIncomeForm()" 
+                   class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 hover:border-[#15803d] cursor-pointer flex items-center justify-between shadow-inner transition-all">
+                <span id="income-amount-display" class="font-price-display text-xl font-extrabold text-[#15803d] dark:text-[#86efac]">
+                  ${fmtCurrency(selectedAmount)}
+                </span>
+                <span class="material-symbols-outlined text-outline text-[20px]">dialpad</span>
+              </div>
+              <input type="hidden" id="income-amount" value="${selectedAmount}">
             </div>
-          </div>
 
-          <!-- Category Selector -->
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-on-surface block">Categoria</label>
-            <div id="income-categories-grid" class="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto p-1">
-              ${categories.map(cat => `
-                <button type="button" onclick="window.setIncomeFormCategory('${cat.id}')" data-cat-id="${cat.id}"
-                        class="income-cat-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${selectedCategory === cat.id ? 'border-secondary bg-secondary/10 font-bold' : 'border-outline-variant/30 bg-surface-container text-on-surface-variant'}">
-                  <span class="material-symbols-outlined text-[18px]" style="color: ${cat.textColor}">${cat.icon}</span>
-                  <span class="text-[10px] text-on-surface truncate w-full text-center">${cat.name}</span>
+            <!-- Status Toggle: Prevista / Recebida -->
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface block">Status do Recebimento</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" id="income-status-pending-btn" onclick="window.setIncomeFormStatus('pending')" 
+                        class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'pending' ? 'bg-primary text-white border-primary shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
+                  <span class="material-symbols-outlined text-[16px]">schedule</span>
+                  <span>Prevista</span>
                 </button>
-              `).join('')}
+                <button type="button" id="income-status-received-btn" onclick="window.setIncomeFormStatus('received')" 
+                        class="py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedStatus === 'received' ? 'bg-[#15803d] text-white border-[#15803d] shadow-sm' : 'bg-surface-container text-on-surface-variant border-outline-variant/30'}">
+                  <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                  <span>Recebida</span>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <!-- Expected Date & Payer -->
-          <div class="grid grid-cols-2 gap-3">
+            <!-- Category Selector -->
             <div class="space-y-1">
-              <label class="text-xs font-bold text-on-surface block">Data</label>
-              <input type="date" id="income-date" value="${income ? income.expectedDate : `${targetMonthKey}-05`}" 
-                     class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
+              <label class="text-xs font-bold text-on-surface block">Categoria</label>
+              <div id="income-categories-grid" class="grid grid-cols-3 gap-2 max-h-36 overflow-y-auto p-1">
+                ${categories.map(cat => `
+                  <button type="button" onclick="window.setIncomeFormCategory('${cat.id}')" data-cat-id="${cat.id}"
+                          class="income-cat-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${selectedCategory === cat.id ? 'border-[#15803d] bg-[#15803d]/10 font-bold' : 'border-outline-variant/30 bg-surface-container text-on-surface-variant'}">
+                    <span class="material-symbols-outlined text-[18px]" style="color: ${cat.textColor}">${cat.icon}</span>
+                    <span class="text-[10px] text-on-surface truncate w-full text-center">${cat.name}</span>
+                  </button>
+                `).join('')}
+              </div>
             </div>
 
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-on-surface block">Pagador / Origem</label>
-              <input type="text" id="income-payer" placeholder="Ex: Empresa" value="${income ? (income.payer || '') : ''}" 
-                     class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
-            </div>
-          </div>
+            <!-- Expected Date & Payer -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-on-surface block">Data</label>
+                <input type="date" id="income-date" value="${income ? income.expectedDate : `${targetMonthKey}-05`}" 
+                       class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
+              </div>
 
-          <!-- Actions -->
-          <div class="flex gap-2.5 pt-2">
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-on-surface block">Pagador / Origem</label>
+                <input type="text" id="income-payer" placeholder="Ex: Empresa" value="${income ? (income.payer || '') : ''}" 
+                       class="w-full px-3 py-2.5 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface">
+              </div>
+            </div>
+
+            <!-- Delete Action (Only for existing incomes) -->
             ${income ? `
-              <button type="button" onclick="window.handleDeleteIncome('${income.id}')" class="p-3 bg-error-container text-error rounded-2xl font-bold text-xs flex items-center justify-center cursor-pointer">
-                <span class="material-symbols-outlined text-[20px]">delete</span>
-              </button>
+              <div class="pt-2">
+                <button type="button" onclick="window.handleDeleteIncome('${income.id}')" 
+                        class="w-full py-3 bg-error-container text-error rounded-2xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer hover:opacity-90 active:scale-98 transition-all">
+                  <span class="material-symbols-outlined text-[18px]">delete</span>
+                  <span>Excluir Receita</span>
+                </button>
+              </div>
             ` : ''}
-            <button type="submit" class="flex-1 py-3.5 bg-secondary text-white font-bold rounded-2xl text-xs shadow-md hover:opacity-95 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer">
-              <span class="material-symbols-outlined text-[18px]">save</span>
-              <span>${income ? 'Salvar Alterações' : 'Cadastrar Receita'}</span>
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   `;
@@ -686,6 +820,10 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
         if (display) display.innerText = fmtCurrency(selectedAmount);
         const input = document.getElementById('income-amount');
         if (input) input.value = selectedAmount;
+        const amountBox = document.getElementById('income-amount-box');
+        if (amountBox && selectedAmount > 0) {
+          amountBox.classList.remove('border-error', 'ring-2', 'ring-error/20');
+        }
       }
     });
   };
@@ -696,7 +834,7 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
     btns.forEach(btn => {
       const isSelected = btn.getAttribute('data-cat-id') === catId;
       if (isSelected) {
-        btn.className = 'income-cat-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer border-secondary bg-secondary/10 font-bold';
+        btn.className = 'income-cat-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer border-[#15803d] bg-[#15803d]/10 font-bold';
       } else {
         btn.className = 'income-cat-btn p-2 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer border-outline-variant/30 bg-surface-container text-on-surface-variant';
       }
@@ -712,7 +850,7 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
         pendingBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-primary text-white border-primary shadow-sm';
         receivedBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-surface-container text-on-surface-variant border-outline-variant/30';
       } else {
-        receivedBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-secondary text-white border-secondary shadow-sm';
+        receivedBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-[#15803d] text-white border-[#15803d] shadow-sm';
         pendingBtn.className = 'py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-surface-container text-on-surface-variant border-outline-variant/30';
       }
     }
@@ -720,15 +858,27 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
 
   window.handleSaveIncomeSubmit = function (e) {
     e.preventDefault();
-    const name = (document.getElementById('income-name')?.value || '').trim();
+    const nameInput = document.getElementById('income-name');
+    const name = (nameInput?.value || '').trim();
     const expectedDate = document.getElementById('income-date')?.value || `${targetMonthKey}-05`;
     const payer = (document.getElementById('income-payer')?.value || '').trim();
 
     if (!name) {
+      if (nameInput) {
+        nameInput.classList.add('border-error', 'ring-2', 'ring-error/20');
+        if (typeof nameInput.focus === 'function') nameInput.focus();
+      }
       window.showToast('Por favor, informe o nome da receita.', 'error');
       return;
+    } else if (nameInput) {
+      nameInput.classList.remove('border-error', 'ring-2', 'ring-error/20');
     }
+
     if (selectedAmount <= 0) {
+      const amountBox = document.getElementById('income-amount-box');
+      if (amountBox) {
+        amountBox.classList.add('border-error', 'ring-2', 'ring-error/20');
+      }
       window.showToast('Por favor, digite um valor maior que zero.', 'error');
       return;
     }
@@ -755,6 +905,7 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
       });
       window.showToast('Receita cadastrada com sucesso!', 'success');
     }
+
     window.closeModal();
   };
 
@@ -818,7 +969,7 @@ window.openCategoryEditModal = function (categoryId = null, defaultType = 'expen
 
   container.innerHTML = `
     <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
-      <div class="floating-modal-sheet p-5 pb-8 slide-up flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="floating-modal-sheet rounded-t-[32px] p-5 pb-8 slide-up flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
         
         <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20">
           <h3 class="font-headline-md text-base font-bold text-on-surface">
@@ -1281,7 +1432,7 @@ window.openYearPickerModal = function () {
 
   container.innerHTML = `
     <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
-      <div class="floating-modal-sheet p-5 pb-8 slide-up flex flex-col gap-4">
+      <div class="floating-modal-sheet rounded-t-[32px] p-5 pb-8 slide-up flex flex-col gap-4">
         
         <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20">
           <h3 class="font-bold text-sm text-on-surface">Selecionar Ano</h3>
@@ -1332,7 +1483,7 @@ window.openMonthFiltersModal = function (type = 'expense') {
 
   container.innerHTML = `
     <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
-      <div class="floating-modal-sheet p-5 pb-8 slide-up flex flex-col gap-4 max-h-[85vh] overflow-y-auto">
+      <div class="floating-modal-sheet rounded-t-[32px] p-5 pb-8 slide-up flex flex-col gap-4 max-h-[85vh] overflow-y-auto">
         
         <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20">
           <div class="flex items-center gap-2">
@@ -1419,7 +1570,7 @@ window.openMonthCloseModal = function (monthKey) {
 
   container.innerHTML = `
     <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
-      <div class="floating-modal-sheet p-5 pb-8 slide-up flex flex-col gap-4">
+      <div class="floating-modal-sheet rounded-t-[32px] p-5 pb-8 slide-up flex flex-col gap-4">
         
         <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20">
           <div class="flex items-center gap-2">

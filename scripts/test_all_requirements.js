@@ -229,6 +229,27 @@ assert(monthHtml.includes('Despesas restantes'), 'Month floating dock uses "Desp
 assert(!monthHtml.includes('Previsão Fechamento') && !monthHtml.includes('Previsão de Fechamento'), 'Previsão de Fechamento removed from Month dock');
 assert(monthHtml.includes('bottom-36') || monthHtml.includes('bottom-[140px]'), 'FAB add button raised to bottom-36');
 
+console.log('\n--- 9. Testing Specific Visual Items (Neutral Amounts, Real Green/Red Buttons, Docks & Dark Mode) ---');
+// 1. Expense Amount Neutrality (Never red or green)
+assert(monthHtml.includes('font-price-display text-lg sm:text-xl font-extrabold text-on-surface dark:text-[#fcf6f2] block leading-none'), 'Expense amount uses neutral text color in both states');
+
+// 2. Button Pago with Real Green Background
+assert(monthHtml.includes('bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border border-[#86efac] dark:border-[#166534]'), 'Button Pago uses real green background and border');
+
+// 3. Button Pendente with Real Red Background
+assert(monthHtml.includes('bg-[#fee2e2] dark:bg-[#3b1212] text-[#dc2626] dark:text-[#fca5a5] border border-[#fca5a5] dark:border-[#7f1d1d]'), 'Button Pendente uses real red background and border');
+
+// 4. CSS Dark Mode Rules Validity
+const cssContent = fs.readFileSync(path.join(rootDir, 'css', 'app.css'), 'utf8');
+assert(!cssContent.includes('html.dark .category-tinted-card,\n@media') && !cssContent.includes('html.dark .category-tinted-card,\r\n@media'), 'CSS has valid dark mode syntax without invalid comma before @media');
+assert(cssContent.includes('html.dark .floating-month-summary-dock'), 'CSS includes html.dark .floating-month-summary-dock');
+assert(cssContent.includes('html.dark .floating-bottom-dock'), 'CSS includes html.dark .floating-bottom-dock');
+assert(cssContent.includes('html.dark .month-card-positive'), 'CSS includes html.dark .month-card-positive');
+assert(cssContent.includes('html.dark .month-card-negative'), 'CSS includes html.dark .month-card-negative');
+
+// 5. Dynamic Colors of Balanço Mensal
+assert(homeHtml.includes('text-[#ff8a80]') || homeHtml.includes('text-[#69f0ae]') || homeHtml.includes('text-white'), 'Home Balanço Mensal has dynamic color');
+
 console.log(`\n========================================`);
 console.log(`🎉 ALL ${passedTests}/${totalTests} TESTS PASSED SUCCESSFULLY!`);
 console.log(`========================================\n`);

@@ -117,13 +117,15 @@ function renderApp() {
 }
 
 // Dynamic Status Bar & Theme-Color Synchronizer for iOS & Android PWAs
+// Dynamic Status Bar & Theme-Color Synchronizer for iOS & Android PWAs
 function updateStatusBarTheme(isDark) {
   if (typeof document === 'undefined' || typeof document.querySelector !== 'function') return;
 
-  const lightColor = '#fff8f5';
+  const lightColor = '#faf8f6';
   const darkColor = '#18120d';
   const effectiveColor = isDark ? darkColor : lightColor;
 
+  // 1. Dynamic meta[name="theme-color"]
   let themeColorMeta = document.getElementById('app-theme-color') || document.querySelector('meta[name="theme-color"]');
   if (!themeColorMeta) {
     themeColorMeta = document.createElement('meta');
@@ -138,6 +140,7 @@ function updateStatusBarTheme(isDark) {
     themeColorMeta.setAttribute('content', effectiveColor);
   }
 
+  // 2. Dynamic apple-mobile-web-app-status-bar-style for iOS
   let appleStatusBarMeta = document.getElementById('app-status-bar-style') || document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
   if (!appleStatusBarMeta) {
     appleStatusBarMeta = document.createElement('meta');
@@ -149,6 +152,7 @@ function updateStatusBarTheme(isDark) {
     appleStatusBarMeta.setAttribute('content', isDark ? 'black' : 'default');
   }
 
+  // 3. Dynamic color-scheme meta tag
   let colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
   if (colorSchemeMeta && typeof colorSchemeMeta.setAttribute === 'function') {
     colorSchemeMeta.setAttribute('content', isDark ? 'dark' : 'light');
@@ -203,6 +207,27 @@ function initThemeManager() {
       darkModeMediaQuery.addListener(onChange);
     }
   }
+
+  // Re-synchronize theme & check due date alerts immediately when app returns to foreground
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        window.applyThemePreference();
+        if (window.NotificationService && typeof window.NotificationService.checkDueDates === 'function') {
+          window.NotificationService.checkDueDates();
+        }
+      }
+    });
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('focus', () => {
+      window.applyThemePreference();
+      if (window.NotificationService && typeof window.NotificationService.checkDueDates === 'function') {
+        window.NotificationService.checkDueDates();
+      }
+    });
+  }
 }
 
 initThemeManager();
@@ -231,6 +256,13 @@ function initApp() {
         window.openOnboardingModal();
       }
     }, 300);
+  }
+
+  // Trigger local in-app due date check on launch
+  if (typeof window !== 'undefined' && window.NotificationService && typeof window.NotificationService.checkDueDates === 'function') {
+    setTimeout(() => {
+      window.NotificationService.checkDueDates();
+    }, 400);
   }
 }
 

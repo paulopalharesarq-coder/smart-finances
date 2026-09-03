@@ -179,19 +179,19 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
               </h4>
             </div>
 
-            <!-- Botão de Status: Pago = Verde, Pendente = Vermelho -->
+            <!-- Botão de Status: Pago = Verde com fundo verde real, Pendente = Vermelho com fundo vermelho -->
             <button type="button" 
                     onclick="event.stopPropagation(); window.openStatusPickerModal({ id: '${exp.id}', type: 'expense', currentStatus: '${exp.status}' })" 
-                    class="px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${isPaid ? 'bg-secondary/15 text-secondary border border-secondary/30' : 'bg-[#dc2626]/15 text-[#dc2626] border border-[#dc2626]/30'}"
+                    class="px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${isPaid ? 'bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border border-[#86efac] dark:border-[#166534]' : 'bg-[#fee2e2] dark:bg-[#3b1212] text-[#dc2626] dark:text-[#fca5a5] border border-[#fca5a5] dark:border-[#7f1d1d]'}"
                     title="Alterar situação">
               <span class="material-symbols-outlined text-[15px]">${isPaid ? 'check_circle' : 'schedule'}</span>
               <span>${isPaid ? 'Pago' : isOverdue ? 'Atrasado' : 'Pendente'}</span>
             </button>
           </div>
 
-          <!-- Middle Line: Valor -->
+          <!-- Middle Line: Valor SEMPRE NEUTRO (Nunca vermelho ou verde em despesas) -->
           <div class="my-2 cursor-pointer" onclick="window.openExpenseModal('${monthKey}', '${exp.id}')">
-            <span class="font-price-display text-lg sm:text-xl font-extrabold ${isPaid ? 'text-secondary' : isOverdue ? 'text-error' : 'text-[#dc2626] dark:text-[#ffb4ab]'} block leading-none">
+            <span class="font-price-display text-lg sm:text-xl font-extrabold text-on-surface dark:text-[#fcf6f2] block leading-none">
               ${fmtCurrency(exp.amount, hideBalances)}
             </span>
           </div>
@@ -277,19 +277,19 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
               </h4>
             </div>
 
-            <!-- Botão de Status -->
+            <!-- Botão de Status: Recebida = Verde real, Prevista = Azul suave -->
             <button type="button" 
                     onclick="event.stopPropagation(); window.openStatusPickerModal({ id: '${inc.id}', type: 'income', currentStatus: '${inc.status}' })" 
-                    class="px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${isReceived ? 'bg-secondary/15 text-secondary border border-secondary/30' : 'bg-primary/15 text-primary border border-primary/30'}"
+                    class="px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${isReceived ? 'bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border border-[#86efac] dark:border-[#166534]' : 'bg-[#e0f2fe] dark:bg-[#0c2438] text-[#0284c7] dark:text-[#7dd3fc] border border-[#7dd3fc] dark:border-[#075985]'}"
                     title="Alterar situação">
               <span class="material-symbols-outlined text-[15px]">${isReceived ? 'check_circle' : 'schedule'}</span>
               <span>${isReceived ? 'Recebida' : 'Prevista'}</span>
             </button>
           </div>
 
-          <!-- Middle Line: Valor -->
+          <!-- Middle Line: Valor da Receita -->
           <div class="my-2 cursor-pointer" onclick="window.openIncomeModal('${monthKey}', '${inc.id}')">
-            <span class="font-price-display text-lg sm:text-xl font-extrabold text-secondary block leading-none">
+            <span class="font-price-display text-lg sm:text-xl font-extrabold text-secondary dark:text-[#7bf8a1] block leading-none">
               ${fmtCurrency(inc.amount, hideBalances)}
             </span>
           </div>
@@ -330,7 +330,7 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
   }
 };
 
-// Generate Floating Summary Dock HTML
+// Generate Floating Summary Dock HTML (Maior destaque visual, padding aumentado, Dark Mode glass)
 window.getMonthSummaryDockHtml = function (monthKey, activeTab) {
   const store = window.financeStore;
   const summary = store.calculateMonthSummary(monthKey);
@@ -367,20 +367,20 @@ window.getMonthSummaryDockHtml = function (monthKey, activeTab) {
     : (activeTab === 'expenses' ? 'Total de Despesas' : 'Total de Receitas');
 
   return `
-    <div class="pointer-events-auto w-full floating-month-summary-dock rounded-[32px] py-3.5 px-5 flex justify-around items-center">
+    <div class="pointer-events-auto w-full floating-month-summary-dock rounded-[32px] py-4 sm:py-4.5 px-5 sm:px-6 flex justify-around items-center">
       
       <!-- Lado Esquerdo: DESPESAS RESTANTES (Soma de despesas pendentes) -->
-      <div class="text-center flex-1 border-r border-outline-variant/30 pr-3">
-        <span class="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider block">Despesas restantes</span>
-        <span class="font-price-display text-sm sm:text-base font-black text-[#dc2626] dark:text-[#ffb4ab] block mt-0.5 leading-tight">
+      <div class="text-center flex-1 border-r border-outline-variant/30 dark:border-white/10 pr-4">
+        <span class="text-[11px] sm:text-xs font-bold uppercase text-on-surface-variant dark:text-[#d7c3b5] tracking-wider block">Despesas restantes</span>
+        <span class="font-price-display text-lg sm:text-xl font-black text-[#dc2626] dark:text-[#ff8a80] block mt-1 leading-tight">
           ${fmtCurrency(summary.remainingExpenses, hideBalances)}
         </span>
       </div>
 
       <!-- Lado Direito: Total da Tela Contextual / Filtrado -->
-      <div class="text-center flex-1 pl-3">
-        <span class="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider block">${screenTotalLabel}</span>
-        <span class="font-price-display text-sm sm:text-base font-black text-on-surface block mt-0.5 leading-tight">
+      <div class="text-center flex-1 pl-4">
+        <span class="text-[11px] sm:text-xs font-bold uppercase text-on-surface-variant dark:text-[#d7c3b5] tracking-wider block">${screenTotalLabel}</span>
+        <span class="font-price-display text-lg sm:text-xl font-black text-on-surface dark:text-[#fcf6f2] block mt-1 leading-tight">
           ${fmtCurrency(visibleTotal, hideBalances)}
         </span>
       </div>

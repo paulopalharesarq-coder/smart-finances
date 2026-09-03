@@ -42,13 +42,18 @@ window.renderHomeView = function () {
   // Short month name for badge (e.g., "Agosto", "Setembro")
   const shortCurrentMonthName = currentSummary.monthName.split(' ')[0];
 
-  // Dynamic color for monthly balance
+  // Dynamic color for monthly balance (Strictly matches previous months' cards token)
   let forecastColorClass = 'text-white';
   if (currentSummary.forecastBalance > 0) {
-    forecastColorClass = 'text-[#82f5b5]'; // Verde suave
+    forecastColorClass = 'text-[#15803d] dark:text-[#69f0ae]'; // Verde exato dos meses anteriores
   } else if (currentSummary.forecastBalance < 0) {
-    forecastColorClass = 'text-[#ffdad4]'; // Vermelho suave
+    forecastColorClass = 'text-[#dc2626] dark:text-[#ff8a80]'; // Vermelho exato dos meses anteriores
   }
+
+  // Count pending items due today or tomorrow for notification badge
+  const todayStr = (window.NotificationService ? window.NotificationService.getLocalDateString(0) : new Date().toISOString().split('T')[0]);
+  const tomorrowStr = (window.NotificationService ? window.NotificationService.getLocalDateString(1) : new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+  const dueCount = (store.state.expenses || []).filter(e => e.status === 'pending' && (e.dueDate === todayStr || e.dueDate === tomorrowStr)).length;
 
   const monthsCardsHtml = monthList.length > 0 ? monthList.map(m => {
     const summary = store.calculateMonthSummary(m.key);
@@ -65,7 +70,7 @@ window.renderHomeView = function () {
            class="month-card-item ${cardToneClass} rounded-2xl p-4 flex justify-between items-center cursor-pointer group active:scale-[0.99] transition-all shadow-sm">
         <!-- Lado Esquerdo: Nome do Mês -->
         <div class="flex items-center gap-3">
-          <h3 class="font-body-lg text-sm sm:text-base font-bold text-on-surface group-hover:text-primary transition-colors">
+          <h3 class="font-body-lg text-sm sm:text-base font-bold text-on-surface dark:text-[#fcf6f2] group-hover:text-primary transition-colors">
             ${shortName}
           </h3>
         </div>
@@ -73,10 +78,10 @@ window.renderHomeView = function () {
         <!-- Lado Direito: Balanço Mensal e Seta -->
         <div class="flex items-center gap-3">
           <div class="text-right">
-            <span class="font-price-display text-sm font-extrabold ${isNegative ? 'text-[#dc2626] dark:text-[#ffb4ab]' : isPositive ? 'text-[#15803d] dark:text-[#61de8a]' : 'text-on-surface-variant'} block leading-tight">
+            <span class="font-price-display text-sm font-extrabold ${isNegative ? 'text-[#dc2626] dark:text-[#ff8a80]' : isPositive ? 'text-[#15803d] dark:text-[#69f0ae]' : 'text-on-surface-variant dark:text-[#d7c3b5]'} block leading-tight">
               ${fmt(val)}
             </span>
-            <span class="text-[10px] text-on-surface-variant/80 font-medium block mt-0.5">
+            <span class="text-[10px] text-on-surface-variant/80 dark:text-[#d7c3b5]/80 font-medium block mt-0.5">
               Balanço mensal
             </span>
           </div>
@@ -115,11 +120,17 @@ window.renderHomeView = function () {
           </div>
         </div>
 
-        <!-- Botão de Notificações -->
-        <button onclick="window.showToast('Você não tem novas notificações no momento.', 'info')" 
-                class="w-11 h-11 rounded-2xl bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] flex items-center justify-center hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer" 
-                title="Notificações">
+        <!-- Botão de Notificações com Popup Central de Avisos -->
+        <button type="button" 
+                onclick="window.openNotificationCenterModal()" 
+                class="relative w-11 h-11 rounded-2xl bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] flex items-center justify-center hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer" 
+                title="Central de Notificações">
           <span class="material-symbols-outlined text-[22px]">notifications</span>
+          ${dueCount > 0 ? `
+            <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#dc2626] text-white text-[10px] font-black flex items-center justify-center shadow-md animate-pulse">
+              ${dueCount}
+            </span>
+          ` : ''}
         </button>
       </header>
 
