@@ -5,7 +5,10 @@
  * - Status determines realized vs planned.
  * - Month entity aggregation with dynamic year navigation.
  * - Explicit Carryover Rule: Previous month remaining balance is NOT automatic.
- * - Installment distribution, privacy toggle, and profile storage.
+ * - Installment distribution (bidirectional with intermediate installment support).
+ * - Controlled recurring expenses horizon.
+ * - Full Category CRUD and "Outras despesas" default fallback.
+ * - Chronological date sorting for expenses and incomes.
  */
 
 const STORAGE_KEY = 'stitch_smart_finances_v1';
@@ -13,7 +16,7 @@ const STORAGE_KEY = 'stitch_smart_finances_v1';
 const DEFAULT_EXPENSE_CATEGORIES = [
   {
     id: 'moradia',
-    name: 'Moradia & Contas',
+    name: 'Moradia',
     type: 'expense',
     icon: 'home',
     bgColor: '#dbeafe',
@@ -27,7 +30,7 @@ const DEFAULT_EXPENSE_CATEGORIES = [
   },
   {
     id: 'alimentacao',
-    name: 'Alimentação & Mercado',
+    name: 'Alimentação',
     type: 'expense',
     icon: 'restaurant',
     bgColor: '#dcfce7',
@@ -41,7 +44,7 @@ const DEFAULT_EXPENSE_CATEGORIES = [
   },
   {
     id: 'transporte',
-    name: 'Transporte & Veículo',
+    name: 'Transporte',
     type: 'expense',
     icon: 'directions_car',
     bgColor: '#e0f2fe',
@@ -55,7 +58,7 @@ const DEFAULT_EXPENSE_CATEGORIES = [
   },
   {
     id: 'saude',
-    name: 'Saúde & Farmácia',
+    name: 'Saúde',
     type: 'expense',
     icon: 'medical_services',
     bgColor: '#ffe4e6',
@@ -68,8 +71,22 @@ const DEFAULT_EXPENSE_CATEGORIES = [
     order: 4
   },
   {
+    id: 'vestuario',
+    name: 'Vestuário',
+    type: 'expense',
+    icon: 'checkroom',
+    bgColor: '#fce7f3',
+    textColor: '#c026d3',
+    borderColor: '#fbcfe8',
+    cardBgLight: '#fdf4ff', // Fuchsia / Magenta Pastel
+    cardBgDark: '#380a42',  // Deep Magenta
+    cardBorderLight: '#f5d0fe',
+    cardBorderDark: '#701a75',
+    order: 5
+  },
+  {
     id: 'contas',
-    name: 'Contas & Serviços',
+    name: 'Contas e serviços',
     type: 'expense',
     icon: 'receipt_long',
     bgColor: '#fef08a',
@@ -79,11 +96,25 @@ const DEFAULT_EXPENSE_CATEGORIES = [
     cardBgDark: '#382305',  // Deep Amber
     cardBorderLight: '#fde047',
     cardBorderDark: '#6b4609',
-    order: 5
+    order: 6
+  },
+  {
+    id: 'viagem',
+    name: 'Viagem',
+    type: 'expense',
+    icon: 'flight',
+    bgColor: '#e0e7ff',
+    textColor: '#4338ca',
+    borderColor: '#c7d2fe',
+    cardBgLight: '#eef2ff', // Indigo Pastel
+    cardBgDark: '#1e1b4b',  // Deep Indigo
+    cardBorderLight: '#c7d2fe',
+    cardBorderDark: '#3730a3',
+    order: 7
   },
   {
     id: 'lazer',
-    name: 'Lazer & Viagens',
+    name: 'Lazer',
     type: 'expense',
     icon: 'sports_esports',
     bgColor: '#f3e8ff',
@@ -93,7 +124,7 @@ const DEFAULT_EXPENSE_CATEGORIES = [
     cardBgDark: '#2b0b47',  // Deep Violet
     cardBorderLight: '#e9d5ff',
     cardBorderDark: '#581c87',
-    order: 6
+    order: 8
   },
   {
     id: 'educacao',
@@ -107,25 +138,11 @@ const DEFAULT_EXPENSE_CATEGORIES = [
     cardBgDark: '#062b27',  // Deep Teal
     cardBorderLight: '#99f6e4',
     cardBorderDark: '#115e59',
-    order: 7
-  },
-  {
-    id: 'cartao',
-    name: 'Cartão de Crédito',
-    type: 'expense',
-    icon: 'credit_card',
-    bgColor: '#fce7f3',
-    textColor: '#c026d3',
-    borderColor: '#fbcfe8',
-    cardBgLight: '#fdf4ff', // Fuchsia / Magenta Pastel
-    cardBgDark: '#380a42',  // Deep Magenta
-    cardBorderLight: '#f5d0fe',
-    cardBorderDark: '#701a75',
-    order: 8
+    order: 9
   },
   {
     id: 'outras_despesas',
-    name: 'Outras Despesas',
+    name: 'Outras despesas',
     type: 'expense',
     icon: 'more_horiz',
     bgColor: '#f2dfd4',
@@ -135,7 +152,7 @@ const DEFAULT_EXPENSE_CATEGORIES = [
     cardBgDark: '#271d17',  // Deep Warm Neutral
     cardBorderLight: '#ede3dc',
     cardBorderDark: '#443329',
-    order: 9
+    order: 10
   }
 ];
 
@@ -281,12 +298,16 @@ class FinanceStore {
         if (!parsed.categories || parsed.categories.length === 0) {
           parsed.categories = [...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES];
         } else {
+          // Normalize existing categories and ensure all default 10 expense categories are present
+          const existingIds = new Set(parsed.categories.map(c => c.id));
+          
           parsed.categories = parsed.categories.map(c => {
             const def = defaultCatsMap[c.id];
             if (def) {
               return { 
                 ...def, 
                 ...c, 
+                name: def.name || c.name,
                 cardBgLight: def.cardBgLight, 
                 cardBgDark: def.cardBgDark, 
                 cardBorderLight: def.cardBorderLight, 
@@ -298,7 +319,15 @@ class FinanceStore {
             }
             return c;
           });
+
+          // Add any missing default categories
+          [...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES].forEach(dc => {
+            if (!existingIds.has(dc.id)) {
+              parsed.categories.push(dc);
+            }
+          });
         }
+
         if (!parsed.months) parsed.months = {};
         if (!parsed.expenses) parsed.expenses = [];
         if (!parsed.incomes) parsed.incomes = [];
@@ -308,15 +337,22 @@ class FinanceStore {
         if (parsed.profileConfigured === undefined) {
           parsed.profileConfigured = Boolean(parsed.userName && parsed.userName.trim().length > 0);
         }
+        
         // Normalize single-amount migration if existing data had plannedAmount
         parsed.expenses.forEach(e => {
           if (e.amount === undefined && e.plannedAmount !== undefined) {
             e.amount = Number(e.plannedAmount) || 0;
           }
+          if (!e.categoryId) {
+            e.categoryId = 'outras_despesas';
+          }
         });
         parsed.incomes.forEach(i => {
           if (i.amount === undefined && i.plannedAmount !== undefined) {
             i.amount = Number(i.plannedAmount) || 0;
+          }
+          if (!i.categoryId) {
+            i.categoryId = 'outras_receitas';
           }
         });
         return parsed;
@@ -404,12 +440,12 @@ class FinanceStore {
         isRecurring: false
       },
 
-      // Past Months matching the reference card numbers:
-      { id: 'seed-p1-e', monthKey: pastMonthsKeys[0], name: 'Despesas Gerais de Julho', amount: 4000.00, categoryId: 'moradia', status: 'paid' },
-      { id: 'seed-p2-e', monthKey: pastMonthsKeys[1], name: 'Despesas Gerais de Junho', amount: 3800.00, categoryId: 'moradia', status: 'paid' },
-      { id: 'seed-p3-e', monthKey: pastMonthsKeys[2], name: 'Despesas Gerais de Maio', amount: 3900.00, categoryId: 'moradia', status: 'paid' },
-      { id: 'seed-p4-e', monthKey: pastMonthsKeys[3], name: 'Despesas Gerais de Abril', amount: 4120.40, categoryId: 'moradia', status: 'paid' },
-      { id: 'seed-p5-e', monthKey: pastMonthsKeys[4], name: 'Despesas Gerais de Março', amount: 3700.00, categoryId: 'moradia', status: 'paid' }
+      // Past Months:
+      { id: 'seed-p1-e', monthKey: pastMonthsKeys[0], name: 'Despesas Gerais de Julho', amount: 4000.00, dueDate: `${pastMonthsKeys[0]}-10`, categoryId: 'moradia', status: 'paid' },
+      { id: 'seed-p2-e', monthKey: pastMonthsKeys[1], name: 'Despesas Gerais de Junho', amount: 3800.00, dueDate: `${pastMonthsKeys[1]}-10`, categoryId: 'moradia', status: 'paid' },
+      { id: 'seed-p3-e', monthKey: pastMonthsKeys[2], name: 'Despesas Gerais de Maio', amount: 3900.00, dueDate: `${pastMonthsKeys[2]}-10`, categoryId: 'moradia', status: 'paid' },
+      { id: 'seed-p4-e', monthKey: pastMonthsKeys[3], name: 'Despesas Gerais de Abril', amount: 4120.40, dueDate: `${pastMonthsKeys[3]}-10`, categoryId: 'moradia', status: 'paid' },
+      { id: 'seed-p5-e', monthKey: pastMonthsKeys[4], name: 'Despesas Gerais de Março', amount: 3700.00, dueDate: `${pastMonthsKeys[4]}-10`, categoryId: 'moradia', status: 'paid' }
     ];
 
     // Seed realistic incomes
@@ -429,11 +465,11 @@ class FinanceStore {
       },
 
       // Past Months:
-      { id: 'seed-p1-i', monthKey: pastMonthsKeys[0], name: 'Salário Julho', amount: 4305.00, categoryId: 'salario', status: 'received' },
-      { id: 'seed-p2-i', monthKey: pastMonthsKeys[1], name: 'Salário Junho', amount: 3838.69, categoryId: 'salario', status: 'received' },
-      { id: 'seed-p3-i', monthKey: pastMonthsKeys[2], name: 'Salário Maio', amount: 3976.50, categoryId: 'salario', status: 'received' },
-      { id: 'seed-p4-i', monthKey: pastMonthsKeys[3], name: 'Salário Abril', amount: 4000.00, categoryId: 'salario', status: 'received' },
-      { id: 'seed-p5-i', monthKey: pastMonthsKeys[4], name: 'Salário Março', amount: 3810.20, categoryId: 'salario', status: 'received' }
+      { id: 'seed-p1-i', monthKey: pastMonthsKeys[0], name: 'Salário Julho', amount: 4305.00, expectedDate: `${pastMonthsKeys[0]}-05`, categoryId: 'salario', status: 'received' },
+      { id: 'seed-p2-i', monthKey: pastMonthsKeys[1], name: 'Salário Junho', amount: 3838.69, expectedDate: `${pastMonthsKeys[1]}-05`, categoryId: 'salario', status: 'received' },
+      { id: 'seed-p3-i', monthKey: pastMonthsKeys[2], name: 'Salário Maio', amount: 3976.50, expectedDate: `${pastMonthsKeys[2]}-05`, categoryId: 'salario', status: 'received' },
+      { id: 'seed-p4-i', monthKey: pastMonthsKeys[3], name: 'Salário Abril', amount: 4000.00, expectedDate: `${pastMonthsKeys[3]}-05`, categoryId: 'salario', status: 'received' },
+      { id: 'seed-p5-i', monthKey: pastMonthsKeys[4], name: 'Salário Março', amount: 3810.20, expectedDate: `${pastMonthsKeys[4]}-05`, categoryId: 'salario', status: 'received' }
     ];
 
     return {
@@ -446,7 +482,7 @@ class FinanceStore {
       monthFilterPaymentMethod: 'all',
       monthSearchQuery: '',
       monthListSection: 'previous',
-      selectedYearFilter: null, // null for dynamic stream or specific year string e.g. '2025'
+      selectedYearFilter: null,
       userName: '',
       userPhoto: '',
       profileConfigured: false,
@@ -485,6 +521,14 @@ class FinanceStore {
       this.notify();
     } catch (e) {
       console.error('[FinanceStore] Error saving state to localStorage:', e);
+    }
+  }
+
+  saveStateSilently() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+    } catch (e) {
+      console.error('[FinanceStore] Error saving state quietly:', e);
     }
   }
 
@@ -583,7 +627,7 @@ class FinanceStore {
 
   setMonthSearchQuery(query) {
     this.state.monthSearchQuery = query || '';
-    this.saveState();
+    this.saveStateSilently();
   }
 
   setMonthFilterCategory(catId) {
@@ -633,7 +677,6 @@ class FinanceStore {
     return this.state.months[monthKey] || this.ensureMonthExists(monthKey);
   }
 
-  // Year selection for Home month listing
   setSelectedYear(year) {
     this.state.selectedYear = parseInt(year, 10) || new Date().getFullYear();
     this.saveState();
@@ -643,7 +686,6 @@ class FinanceStore {
     return this.state.selectedYear || new Date().getFullYear();
   }
 
-  // Dynamic Chronological Month Generation STRICTLY RESTRICTED TO SELECTED YEAR
   getPreviousMonthsList() {
     const currentKey = getCurrentMonthKey();
     const [currentY, currentM] = currentKey.split('-').map(Number);
@@ -651,7 +693,6 @@ class FinanceStore {
     const months = [];
 
     if (selectedY === currentY) {
-      // In the current year: show all months prior to the current month (e.g. month-1 down to 1)
       for (let m = currentM - 1; m >= 1; m--) {
         const mKey = `${selectedY}-${String(m).padStart(2, '0')}`;
         months.push({
@@ -661,7 +702,6 @@ class FinanceStore {
         });
       }
     } else if (selectedY < currentY) {
-      // In a previous year: show all 12 months from December down to January
       for (let m = 12; m >= 1; m--) {
         const mKey = `${selectedY}-${String(m).padStart(2, '0')}`;
         months.push({
@@ -682,7 +722,6 @@ class FinanceStore {
     const months = [];
 
     if (selectedY === currentY) {
-      // In the current year: show all months after the current month (e.g. month+1 up to 12)
       for (let m = currentM + 1; m <= 12; m++) {
         const mKey = `${selectedY}-${String(m).padStart(2, '0')}`;
         months.push({
@@ -692,7 +731,6 @@ class FinanceStore {
         });
       }
     } else if (selectedY > currentY) {
-      // In a future year: show all 12 months from January up to December
       for (let m = 1; m <= 12; m++) {
         const mKey = `${selectedY}-${String(m).padStart(2, '0')}`;
         months.push({
@@ -715,7 +753,7 @@ class FinanceStore {
     return Object.values(monthsMap);
   }
 
-  // Categories
+  // Categories CRUD & Color Management
   getCategories(type = null) {
     if (!this.state.categories) return [];
     if (!type || type === 'all') return this.state.categories;
@@ -725,9 +763,9 @@ class FinanceStore {
   getCategoryById(id) {
     if (!id) {
       return {
-        id: null,
-        name: 'Sem categoria',
-        icon: 'folder_open',
+        id: 'outras_despesas',
+        name: 'Outras despesas',
+        icon: 'more_horiz',
         bgColor: '#f2dfd4',
         textColor: '#564337',
         borderColor: '#dcc1b1',
@@ -739,11 +777,11 @@ class FinanceStore {
     }
     return this.state.categories.find(c => c.id === id) || {
       id: id,
-      name: 'Outros',
-      icon: 'category',
-      bgColor: '#feeadf',
-      textColor: '#944a00',
-      borderColor: '#f2dfd4',
+      name: 'Outras despesas',
+      icon: 'more_horiz',
+      bgColor: '#f2dfd4',
+      textColor: '#564337',
+      borderColor: '#dcc1b1',
       cardBgLight: '#faf8f6',
       cardBgDark: '#271d17',
       cardBorderLight: '#ede3dc',
@@ -751,7 +789,67 @@ class FinanceStore {
     };
   }
 
-  // Centralized Category Card Color Engine (Source of Truth)
+  addCategory(category) {
+    if (!category || !category.name) return null;
+    const catId = category.id || ('cat-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4));
+    
+    const newCat = {
+      id: catId,
+      name: (category.name || '').trim(),
+      type: category.type || 'expense',
+      icon: category.icon || 'category',
+      bgColor: category.bgColor || '#f2dfd4',
+      textColor: category.textColor || '#564337',
+      borderColor: category.borderColor || '#dcc1b1',
+      cardBgLight: category.cardBgLight || '#faf8f6',
+      cardBgDark: category.cardBgDark || '#271d17',
+      cardBorderLight: category.cardBorderLight || '#ede3dc',
+      cardBorderDark: category.cardBorderDark || '#443329',
+      order: (this.state.categories?.length || 0) + 1
+    };
+
+    if (!this.state.categories) this.state.categories = [];
+    this.state.categories.push(newCat);
+    this.saveState();
+    return newCat;
+  }
+
+  updateCategory(id, updates) {
+    if (!id || !this.state.categories) return null;
+    const index = this.state.categories.findIndex(c => c.id === id);
+    if (index === -1) return null;
+
+    this.state.categories[index] = {
+      ...this.state.categories[index],
+      ...updates
+    };
+    this.saveState();
+    return this.state.categories[index];
+  }
+
+  deleteCategory(id) {
+    if (!id || !this.state.categories) return false;
+    
+    // Fallback safe reassignment: reassign all expenses/incomes to 'outras_despesas' / 'outras_receitas'
+    const targetCat = this.getCategoryById(id);
+    const fallbackId = targetCat.type === 'income' ? 'outras_receitas' : 'outras_despesas';
+
+    if (this.state.expenses) {
+      this.state.expenses.forEach(e => {
+        if (e.categoryId === id) e.categoryId = fallbackId;
+      });
+    }
+    if (this.state.incomes) {
+      this.state.incomes.forEach(i => {
+        if (i.categoryId === id) i.categoryId = fallbackId;
+      });
+    }
+
+    this.state.categories = this.state.categories.filter(c => c.id !== id);
+    this.saveState();
+    return true;
+  }
+
   getCategoryCardStyles(catInput) {
     const cat = typeof catInput === 'string' ? this.getCategoryById(catInput) : (catInput || this.getCategoryById(null));
     
@@ -778,10 +876,18 @@ class FinanceStore {
     };
   }
 
-  // Expenses CRUD with Single Amount Model (amount)
+  // Expenses CRUD with Single Amount Model & Chronological Date Sorting
   getExpensesByMonth(monthKey) {
     if (!monthKey) return [];
-    return (this.state.expenses || []).filter(e => e.monthKey === monthKey);
+    const items = (this.state.expenses || []).filter(e => e.monthKey === monthKey);
+    
+    // Sort by due date (closest date first). Items without date go to the end.
+    return items.sort((a, b) => {
+      const dateA = a.dueDate && a.dueDate.trim() ? a.dueDate : '9999-99-99';
+      const dateB = b.dueDate && b.dueDate.trim() ? b.dueDate : '9999-99-99';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
   }
 
   getExpenseById(id) {
@@ -799,8 +905,8 @@ class FinanceStore {
       monthKey,
       name: (expense.name || '').trim() || 'Despesa sem nome',
       amount,
-      dueDate: expense.dueDate || `${monthKey}-10`,
-      categoryId: expense.categoryId || 'outras_despesas',
+      dueDate: expense.dueDate !== undefined ? (expense.dueDate || null) : `${monthKey}-10`,
+      categoryId: expense.categoryId || 'outras_despesas', // Fallback default
       payee: (expense.payee || '').trim(),
       status: expense.status || 'pending', // 'pending' | 'paid' | 'overdue' | 'cancelled'
       paymentMethod: expense.paymentMethod || 'credit',
@@ -866,10 +972,18 @@ class FinanceStore {
     return this.updateExpense(id, { status: newStatus });
   }
 
-  // Incomes CRUD with Single Amount Model (amount)
+  // Incomes CRUD with Single Amount Model & Chronological Date Sorting
   getIncomesByMonth(monthKey) {
     if (!monthKey) return [];
-    return (this.state.incomes || []).filter(i => i.monthKey === monthKey);
+    const items = (this.state.incomes || []).filter(i => i.monthKey === monthKey);
+    
+    // Sort by expected/received date (closest date first). Items without date go to the end.
+    return items.sort((a, b) => {
+      const dateA = (a.expectedDate || a.receivedDate || '').trim() || '9999-99-99';
+      const dateB = (b.expectedDate || b.receivedDate || '').trim() || '9999-99-99';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
   }
 
   getIncomeById(id) {
@@ -887,7 +1001,7 @@ class FinanceStore {
       monthKey,
       name: (income.name || '').trim() || 'Receita sem nome',
       amount,
-      expectedDate: income.expectedDate || `${monthKey}-05`,
+      expectedDate: income.expectedDate !== undefined ? (income.expectedDate || null) : `${monthKey}-05`,
       receivedDate: income.receivedDate || (income.status === 'received' ? `${monthKey}-05` : null),
       categoryId: income.categoryId || 'salario',
       payer: (income.payer || '').trim(),
@@ -949,13 +1063,25 @@ class FinanceStore {
     return this.updateIncome(id, { status: newStatus });
   }
 
-  // Installment Plans Engine
-  createInstallmentPlan({ description, totalAmount, totalInstallments, startMonthKey, categoryId, payee, paymentMethod }) {
+  // Installment Plans Engine with Intermediate Installment Calculation Support
+  createInstallmentPlan({ 
+    description, 
+    totalAmount, 
+    totalInstallments, 
+    currentInstallment = 1, 
+    startMonthKey, 
+    categoryId, 
+    payee, 
+    paymentMethod,
+    dueDateDay = '10'
+  }) {
     const planId = 'inst-' + Date.now();
     const count = Math.max(2, parseInt(totalInstallments, 10) || 2);
+    const currentK = Math.min(count, Math.max(1, parseInt(currentInstallment, 10) || 1));
     const amount = Number(totalAmount) || 0;
     const installmentAmount = Math.round((amount / count) * 100) / 100;
-    const startKey = startMonthKey || getCurrentMonthKey();
+    const anchorMonthKey = startMonthKey || getCurrentMonthKey();
+    const dayStr = String(dueDateDay || '10').padStart(2, '0');
 
     const plan = {
       id: planId,
@@ -963,7 +1089,8 @@ class FinanceStore {
       totalAmount: amount,
       installmentAmount,
       totalInstallments: count,
-      startMonthKey: startKey,
+      currentInstallment: currentK,
+      startMonthKey: anchorMonthKey,
       categoryId: categoryId || 'outras_despesas',
       payee: (payee || '').trim(),
       paymentMethod: paymentMethod || 'credit',
@@ -973,18 +1100,24 @@ class FinanceStore {
     if (!this.state.installmentPlans) this.state.installmentPlans = [];
     this.state.installmentPlans.push(plan);
 
+    // Distribute all N installments:
+    // For each installment i (1..N), calculate delta = i - currentK
+    // Past installments (i < currentK) go to earlier months
+    // Current installment (i = currentK) goes to anchorMonthKey
+    // Future installments (i > currentK) go to later months
     for (let i = 1; i <= count; i++) {
-      const monthKey = getAdjacentMonthKey(startKey, i - 1);
-      this.ensureMonthExists(monthKey);
+      const delta = i - currentK;
+      const targetMonth = getAdjacentMonthKey(anchorMonthKey, delta);
+      this.ensureMonthExists(targetMonth);
 
       this.addExpense({
-        monthKey,
+        monthKey: targetMonth,
         name: `${plan.description} (${i}/${count})`,
         amount: installmentAmount,
-        dueDate: `${monthKey}-10`,
+        dueDate: `${targetMonth}-${dayStr}`,
         categoryId: plan.categoryId,
         payee: plan.payee,
-        status: 'pending',
+        status: i < currentK ? 'paid' : 'pending',
         paymentMethod: plan.paymentMethod,
         isInstallment: true,
         installmentPlanId: planId,
@@ -1001,6 +1134,67 @@ class FinanceStore {
     return (this.state.expenses || [])
       .filter(e => e.installmentPlanId === planId)
       .sort((a, b) => (a.installmentNumber || 0) - (b.installmentNumber || 0));
+  }
+
+  // Recurring Expenses Engine (Controlled 12-Month Horizon)
+  createRecurringExpense({ 
+    name, 
+    amount, 
+    startMonthKey, 
+    categoryId, 
+    payee, 
+    paymentMethod, 
+    dueDateDay = '10',
+    frequency = 'monthly',
+    horizonMonths = 12 
+  }) {
+    const ruleId = 'rec-' + Date.now();
+    const anchorMonthKey = startMonthKey || getCurrentMonthKey();
+    const dayStr = String(dueDateDay || '10').padStart(2, '0');
+
+    const rule = {
+      id: ruleId,
+      name: (name || '').trim() || 'Despesa Recorrente',
+      amount: Number(amount) || 0,
+      startMonthKey: anchorMonthKey,
+      categoryId: categoryId || 'outras_despesas',
+      payee: (payee || '').trim(),
+      paymentMethod: paymentMethod || 'credit',
+      frequency: frequency || 'monthly',
+      createdAt: new Date().toISOString()
+    };
+
+    if (!this.state.recurringRules) this.state.recurringRules = [];
+    this.state.recurringRules.push(rule);
+
+    // Generate instances for up to horizonMonths without duplicate
+    for (let m = 0; m < horizonMonths; m++) {
+      const targetMonth = getAdjacentMonthKey(anchorMonthKey, m);
+      this.ensureMonthExists(targetMonth);
+
+      // Check for duplicate in targetMonth with same ruleId
+      const exists = (this.state.expenses || []).some(
+        e => e.monthKey === targetMonth && e.recurringRuleId === ruleId
+      );
+
+      if (!exists) {
+        this.addExpense({
+          monthKey: targetMonth,
+          name: rule.name,
+          amount: rule.amount,
+          dueDate: `${targetMonth}-${dayStr}`,
+          categoryId: rule.categoryId,
+          payee: rule.payee,
+          status: 'pending',
+          paymentMethod: rule.paymentMethod,
+          isRecurring: true,
+          recurringRuleId: ruleId
+        });
+      }
+    }
+
+    this.saveState();
+    return rule;
   }
 
   // Explicit Month Close & Carryover Rule Engine
@@ -1070,13 +1264,13 @@ class FinanceStore {
     return true;
   }
 
-  // Single-Amount Calculation Engine
+  // Single-Amount Calculation Engine (Exact Remaining Expenses Rule)
   calculateMonthSummary(monthKey) {
     const month = this.getMonth(monthKey);
     const carriedBalance = (month && month.carriedBalanceAccepted) ? (Number(month.carriedBalance) || 0) : 0;
 
-    const expenses = this.getExpensesByMonth(monthKey).filter(e => e.status !== 'cancelled');
-    const incomes = this.getIncomesByMonth(monthKey).filter(i => i.status !== 'cancelled');
+    const expenses = (this.state.expenses || []).filter(e => e.monthKey === monthKey && e.status !== 'cancelled');
+    const incomes = (this.state.incomes || []).filter(i => i.monthKey === monthKey && i.status !== 'cancelled');
 
     // Receitas
     const plannedIncomes = incomes.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
@@ -1089,14 +1283,16 @@ class FinanceStore {
     const paidExpenses = expenses
       .filter(e => e.status === 'paid')
       .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    
+    // Despesas Restantes: Soma exclusiva de despesas com status Pendente ou Atrasado
     const remainingExpenses = expenses
       .filter(e => e.status === 'pending' || e.status === 'overdue')
       .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
-    // Previsão de Fechamento: Receitas totais + Saldo Inicial Trazido - Despesas Totais
+    // Balanço Mensal: Receitas totais + Saldo Inicial Trazido - Despesas Totais
     const forecastBalance = (plannedIncomes + carriedBalance) - plannedExpenses;
 
-    // Saldo Atual: Receitas Recebidas + Saldo Inicial Trazido - Despesas Pagas
+    // Saldo Atual Realizado: Receitas Recebidas + Saldo Inicial Trazido - Despesas Pagas
     const actualBalance = (receivedIncomes + carriedBalance) - paidExpenses;
 
     let cardTone = 'neutral';

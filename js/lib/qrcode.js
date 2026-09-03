@@ -464,4 +464,39 @@
       return `<div class="p-4 text-center text-xs text-error font-bold">Erro ao gerar QR Code</div>`;
     }
   };
+
+  function QRCode(targetEl, vOption) {
+    let options = {
+      width: 200,
+      height: 200,
+      colorDark: "#231a13",
+      colorLight: "#ffffff",
+      correctLevel: QRErrorCorrectLevel.M
+    };
+
+    if (typeof vOption === 'string') {
+      options.text = vOption;
+    } else if (vOption) {
+      options = Object.assign(options, vOption);
+    }
+
+    const container = typeof targetEl === 'string' ? document.getElementById(targetEl) : targetEl;
+    if (container && options.text) {
+      container.innerHTML = global.generateQRCodeSVG(options.text, options.width || 200, options.colorDark || '#231a13', options.colorLight || '#ffffff');
+    }
+
+    this.makeCode = function (text) {
+      if (container && text) {
+        container.innerHTML = global.generateQRCodeSVG(text, options.width || 200, options.colorDark || '#231a13', options.colorLight || '#ffffff');
+      }
+    };
+
+    this.clear = function () {
+      if (container) container.innerHTML = '';
+    };
+  }
+
+  QRCode.CorrectLevel = QRErrorCorrectLevel;
+  global.QRCode = QRCode;
 })(typeof window !== 'undefined' ? window : global);
+

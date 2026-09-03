@@ -42,6 +42,14 @@ window.renderHomeView = function () {
   // Short month name for badge (e.g., "Agosto", "Setembro")
   const shortCurrentMonthName = currentSummary.monthName.split(' ')[0];
 
+  // Dynamic color for monthly balance
+  let forecastColorClass = 'text-white';
+  if (currentSummary.forecastBalance > 0) {
+    forecastColorClass = 'text-[#82f5b5]'; // Verde suave
+  } else if (currentSummary.forecastBalance < 0) {
+    forecastColorClass = 'text-[#ffdad4]'; // Vermelho suave
+  }
+
   const monthsCardsHtml = monthList.length > 0 ? monthList.map(m => {
     const summary = store.calculateMonthSummary(m.key);
     const val = summary.forecastBalance;
@@ -49,7 +57,7 @@ window.renderHomeView = function () {
     const isNegative = val < 0;
     const shortName = m.name.split(' ')[0];
 
-    // Subtle closing tone class (Item #9)
+    // Subtle closing tone class
     const cardToneClass = isPositive ? 'month-card-positive' : isNegative ? 'month-card-negative' : 'month-card-neutral';
 
     return `
@@ -82,7 +90,7 @@ window.renderHomeView = function () {
     <div class="py-8 text-center bg-surface-container/40 rounded-2xl border border-dashed border-outline-variant/40 p-4">
       <span class="material-symbols-outlined text-3xl text-outline mb-1">calendar_today</span>
       <h4 class="font-body-lg text-xs font-bold text-on-surface">Nenhum mês ${activeSection === 'previous' ? 'anterior' : 'futuro'} em ${selectedYear}</h4>
-      <p class="text-[11px] text-on-surface-variant mt-0.5">Use o seletor abaixo para navegar por outros anos.</p>
+      <p class="text-[11px] text-on-surface-variant mt-0.5">Use o seletor de ano superior para navegar por outros anos.</p>
     </div>
   `;
 
@@ -155,15 +163,15 @@ window.renderHomeView = function () {
                   ${fmt(currentSummary.remainingExpenses)}
                 </span>
 
-                <!-- 2. Balanço mensal -->
+                <!-- 2. Balanço mensal (Cores dinâmicas: verde positivo, vermelho negativo, branco neutro) -->
                 <span class="text-[11px] text-white/85 font-medium tracking-wide mt-3.5">Balanço mensal</span>
-                <span class="text-xl font-bold tracking-tight ${currentSummary.forecastBalance < 0 ? 'text-[#ffdad4]' : 'text-white'} mt-0.5 block leading-tight">
+                <span class="text-xl font-bold tracking-tight ${forecastColorClass} mt-0.5 block leading-tight">
                   ${fmt(currentSummary.forecastBalance)}
                 </span>
 
-                <!-- 3. Saldo atual -->
+                <!-- 3. Saldo atual (Cor neutra branca em conformidade com o tema) -->
                 <span class="text-[11px] text-white/85 font-medium tracking-wide mt-3.5">Saldo atual</span>
-                <span class="text-xl font-bold tracking-tight text-[#82f5b5] mt-0.5 block leading-tight">
+                <span class="text-xl font-bold tracking-tight text-white mt-0.5 block leading-tight">
                   ${fmt(currentSummary.actualBalance)}
                 </span>
               </div>
@@ -221,7 +229,7 @@ window.renderHomeView = function () {
           <div class="flex items-center justify-between px-1">
             <span class="text-[11px] font-extrabold uppercase tracking-wider text-on-surface-variant">Navegação Temporal</span>
             <button onclick="window.openYearPickerModal()" 
-                    class="px-2.5 py-1 bg-surface-container hover:bg-surface-variant rounded-xl border border-outline-variant/40 text-[11px] font-bold text-primary flex items-center gap-1 shadow-sm transition-all active:scale-95">
+                    class="px-2.5 py-1 bg-surface-container hover:bg-surface-variant rounded-xl border border-outline-variant/40 text-[11px] font-bold text-primary flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer">
               <span class="material-symbols-outlined text-[15px]">calendar_month</span>
               <span>Ano: ${selectedYear}</span>
               <span class="material-symbols-outlined text-[14px]">expand_more</span>
@@ -230,28 +238,19 @@ window.renderHomeView = function () {
 
           <div class="bg-[#f4ebe4] dark:bg-[#2b2019] p-1 rounded-full flex items-center gap-1 border border-[#ebdcd1] dark:border-[#3e3027] shadow-inner">
             <button onclick="window.financeStore.setMonthListSection('previous')" 
-                    class="flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all ${activeSection === 'previous' ? 'bg-white dark:bg-[#3e3027] text-[#944a00] dark:text-[#ffb783] shadow-sm' : 'text-[#8c7365] dark:text-[#a89487] hover:text-on-surface'}">
+                    class="flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all cursor-pointer ${activeSection === 'previous' ? 'bg-white dark:bg-[#3e3027] text-[#944a00] dark:text-[#ffb783] shadow-sm' : 'text-[#8c7365] dark:text-[#a89487] hover:text-on-surface'}">
               Meses anteriores (${selectedYear})
             </button>
             <button onclick="window.financeStore.setMonthListSection('future')" 
-                    class="flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all ${activeSection === 'future' ? 'bg-white dark:bg-[#3e3027] text-[#944a00] dark:text-[#ffb783] shadow-sm' : 'text-[#8c7365] dark:text-[#a89487] hover:text-on-surface'}">
+                    class="flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all cursor-pointer ${activeSection === 'future' ? 'bg-white dark:bg-[#3e3027] text-[#944a00] dark:text-[#ffb783] shadow-sm' : 'text-[#8c7365] dark:text-[#a89487] hover:text-on-surface'}">
               Próximos meses (${selectedYear})
             </button>
           </div>
         </div>
 
         <!-- Cards Individuais dos Meses com Cor de Fechamento Suave -->
-        <div class="space-y-2.5 pt-1">
+        <div class="space-y-2.5 pt-1 pb-4">
           ${monthsCardsHtml}
-        </div>
-
-        <!-- Ação para Navegar em Outros Anos -->
-        <div class="pt-2 pb-4">
-          <button onclick="window.openYearPickerModal()" 
-                  class="w-full py-3 bg-surface-container hover:bg-surface-variant rounded-2xl border border-outline-variant/30 text-xs font-bold text-primary flex items-center justify-center gap-2 transition-all active:scale-98">
-            <span class="material-symbols-outlined text-[18px]">event_repeat</span>
-            <span>Trocar de Ano (${selectedYear})</span>
-          </button>
         </div>
       </main>
     </div>

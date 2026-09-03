@@ -262,41 +262,41 @@ html.dark .category-tinted-card,
 
 /* Floating Bottom Dock (Reinforced Frosted Glass & Blur on Home) */
 .floating-bottom-dock {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 16px 36px -4px rgba(148, 74, 0, 0.12), 0 4px 14px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(28px) saturate(210%);
+  -webkit-backdrop-filter: blur(28px) saturate(210%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 14px 34px -4px rgba(148, 74, 0, 0.10), 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
 html.dark .floating-bottom-dock,
 @media (prefers-color-scheme: dark) {
   html:not(.light) .floating-bottom-dock {
-    background: rgba(28, 20, 16, 0.72);
-    backdrop-filter: blur(24px) saturate(190%);
-    -webkit-backdrop-filter: blur(24px) saturate(190%);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.7);
+    background: rgba(24, 18, 14, 0.68);
+    backdrop-filter: blur(28px) saturate(210%);
+    -webkit-backdrop-filter: blur(28px) saturate(210%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.65);
   }
 }
 
 /* Floating Month Summary Dock (Reinforced Frosted Glass & Blur on Month View) */
 .floating-month-summary-dock {
-  background: rgba(255, 255, 255, 0.74);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.90);
-  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.70);
+  backdrop-filter: blur(28px) saturate(210%);
+  -webkit-backdrop-filter: blur(28px) saturate(210%);
+  border: 1px solid rgba(255, 255, 255, 0.80);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.10), 0 3px 12px rgba(0, 0, 0, 0.03);
 }
 
 html.dark .floating-month-summary-dock,
 @media (prefers-color-scheme: dark) {
   html:not(.light) .floating-month-summary-dock {
-    background: rgba(28, 20, 16, 0.74);
-    backdrop-filter: blur(24px) saturate(200%);
-    -webkit-backdrop-filter: blur(24px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.7);
+    background: rgba(24, 18, 14, 0.70);
+    backdrop-filter: blur(28px) saturate(210%);
+    -webkit-backdrop-filter: blur(28px) saturate(210%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.65);
   }
 }
 
