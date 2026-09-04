@@ -179,50 +179,51 @@ window.openKeypad = function ({ initialValue = 0, onConfirm, title = 'Digitar Va
   };
 
   container.innerHTML = `
-    <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeKeypad()">
-      <div class="keypad-sheet w-full max-w-[480px] mx-auto p-5 pb-8 slide-up flex flex-col gap-4 border-t border-outline-variant/30">
+    <div class="fixed inset-0 z-[60] flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeKeypad()">
+      <div class="keypad-sheet w-full max-w-[480px] mx-auto p-5 pb-[max(2rem,calc(1rem+env(safe-area-inset-bottom,0px)))] slide-up flex flex-col gap-3.5 border-t border-outline-variant/30 select-none">
         
         <!-- Keypad Header -->
-        <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20">
+        <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20 shrink-0">
           <h3 class="font-bold text-sm text-on-surface">${title}</h3>
-          <button type="button" onclick="window.closeKeypad()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer">
+          <button type="button" onclick="window.closeKeypad()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
             <span class="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
 
-        <!-- Value Display Displaying live formatted currency -->
-        <div class="bg-surface-container rounded-2xl p-4 text-center border border-outline-variant/40 shadow-inner">
-          <span class="text-[11px] font-bold uppercase text-on-surface-variant tracking-wider block mb-1">Valor Informado</span>
-          <span id="keypad-display-val" class="font-price-display text-3xl font-black text-primary tracking-tight block">
+        <!-- Value Display with Fixed Stable Dimensions (Zero Shift / Jumping) -->
+        <div class="bg-surface-container rounded-2xl p-3.5 text-center border border-outline-variant/40 shadow-inner h-[76px] flex flex-col justify-center shrink-0">
+          <span class="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider block mb-0.5">Valor Informado</span>
+          <span id="keypad-display-val" class="font-price-display text-3xl font-black text-primary tracking-tight block leading-none tabular-nums">
             ${formatCurrency(rawCents)}
           </span>
         </div>
 
-        <!-- Numeric Grid: 0-9, backspace, clear, confirm -->
-        <div class="grid grid-cols-3 gap-2.5 pt-1">
-          <button type="button" class="keypad-btn" onclick="window.handleKeypadInput('1')">1</button>
-          <button type="button" class="keypad-btn" onclick="window.handleKeypadInput('2')">2</button>
-          <button type="button" class="keypad-btn" onclick="window.handleKeypadInput('3')">3</button>
+        <!-- Numeric Grid: 0-9, backspace, clear -->
+        <div class="grid grid-cols-3 gap-2 pt-0.5 shrink-0">
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant font-bold text-xl active:scale-95 transition-transform text-on-surface flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('1')">1</button>
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant font-bold text-xl active:scale-95 transition-transform text-on-surface flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('2')">2</button>
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant font-bold text-xl active:scale-95 transition-transform text-on-surface flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('3')">3</button>
 
-          <button type="button" class="keypad-btn" onclick="window.handleKeypadInput('4')">4</button>
-          <button type="button" class="keypad-btn" onclick="window.handleKeypadInput('5')">5</button>
-          <button type="button" class="keypad-btn" onclick="window.handleKeypadInput('6')">6</button>
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant font-bold text-xl active:scale-95 transition-transform text-on-surface flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('4')">4</button>
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant font-bold text-xl active:scale-95 transition-transform text-on-surface flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('5')">5</button>
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant font-bold text-xl active:scale-95 transition-transform text-on-surface flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('6')">6</button>
 
-          <button type="button" class="keypad-btn" onclick="window.handleKeypadInput('7')">7</button>
-          <button type="button" class="keypad-btn" onclick="window.handleKeypadInput('8')">8</button>
-          <button type="button" class="keypad-btn" onclick="window.handleKeypadInput('9')">9</button>
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant font-bold text-xl active:scale-95 transition-transform text-on-surface flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('7')">7</button>
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant font-bold text-xl active:scale-95 transition-transform text-on-surface flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('8')">8</button>
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant font-bold text-xl active:scale-95 transition-transform text-on-surface flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('9')">9</button>
 
-          <button type="button" class="keypad-btn text-xs text-error font-extrabold uppercase" onclick="window.handleKeypadInput('clear')">Limpar</button>
-          <button type="button" class="keypad-btn" onclick="window.handleKeypadInput('0')">0</button>
-          <button type="button" class="keypad-btn text-on-surface-variant" onclick="window.handleKeypadInput('backspace')">
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant text-xs text-error font-extrabold uppercase active:scale-95 transition-transform flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('clear')">Limpar</button>
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant font-bold text-xl active:scale-95 transition-transform text-on-surface flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('0')">0</button>
+          <button type="button" class="keypad-btn h-[50px] rounded-2xl bg-surface-container hover:bg-surface-variant text-on-surface-variant active:scale-95 transition-transform flex items-center justify-center cursor-pointer" onclick="window.handleKeypadInput('backspace')">
             <span class="material-symbols-outlined text-[22px]">backspace</span>
           </button>
         </div>
 
-        <!-- Confirm Action Button -->
-        <button id="keypad-confirm-btn" type="button" onclick="window.handleKeypadConfirm()" class="w-full py-3.5 bg-primary text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:opacity-95 active:scale-98 transition-all cursor-pointer">
+        <!-- Confirm Action Button with Fixed Height & Targeted Text Update -->
+        <button id="keypad-confirm-btn" type="button" onclick="window.handleKeypadConfirm()" class="w-full h-12 bg-primary text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:opacity-95 active:scale-98 transition-all cursor-pointer shrink-0">
           <span class="material-symbols-outlined text-[20px]">check</span>
-          <span>Confirmar Valor (${formatCurrency(rawCents)})</span>
+          <span>Confirmar Valor</span>
+          <span id="keypad-confirm-amount-label" class="opacity-95 font-mono">(${formatCurrency(rawCents)})</span>
         </button>
       </div>
     </div>
@@ -239,17 +240,12 @@ window.openKeypad = function ({ initialValue = 0, onConfirm, title = 'Digitar Va
       }
     }
     
-    // In-place DOM update without re-rendering modal
+    // Pure in-place textContent update: ZERO DOM destruction or reflow jumping
     const display = document.getElementById('keypad-display-val');
-    if (display) display.innerText = formatCurrency(rawCents);
+    if (display) display.textContent = formatCurrency(rawCents);
 
-    const confirmBtn = document.getElementById('keypad-confirm-btn');
-    if (confirmBtn) {
-      confirmBtn.innerHTML = `
-        <span class="material-symbols-outlined text-[20px]">check</span>
-        <span>Confirmar Valor (${formatCurrency(rawCents)})</span>
-      `;
-    }
+    const confirmLabel = document.getElementById('keypad-confirm-amount-label');
+    if (confirmLabel) confirmLabel.textContent = `(${formatCurrency(rawCents)})`;
   };
 
   window.handleKeypadConfirm = function () {
@@ -391,6 +387,74 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
         <!-- Scrollable Form Body -->
         <div class="p-5 pb-8 overflow-y-auto space-y-4">
           <form id="expense-form" onsubmit="window.handleSaveExpenseSubmit(event)" class="space-y-4">
+            <!-- Banner de Origem ou Destino para Despesas Movidas -->
+            ${expense && (expense.isMoved || expense.movedToMonthKey) ? `
+              <div class="p-3.5 bg-[#faeae0] dark:bg-[#332218] border border-[#944a00]/30 dark:border-[#ffb783]/30 rounded-2xl flex items-start gap-2.5 text-xs text-[#944a00] dark:text-[#ffb783] shadow-xs">
+                <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5">history</span>
+                <div>
+                  <strong class="font-bold block">Registro Histórico</strong>
+                  <span class="text-[11px] opacity-90 leading-tight">Esta despesa foi transferida para <strong>${store.formatShortMonthYear(expense.movedToMonthKey)}</strong> e não é contabilizada financeiramente neste mês.</span>
+                </div>
+              </div>
+            ` : ''}
+
+            ${expense && expense.movedFromMonthKey ? `
+              <div class="p-3 bg-[#e0f2fe] dark:bg-[#0c2438] border border-[#0284c7]/30 dark:border-[#7dd3fc]/30 rounded-2xl flex items-center gap-2.5 text-xs text-[#0284c7] dark:text-[#7dd3fc] shadow-xs">
+                <span class="material-symbols-outlined text-[18px] shrink-0">undo</span>
+                <span class="text-[11px] font-medium leading-tight">Dívida transferida originária de <strong>${store.formatShortMonthYear(expense.movedFromMonthKey)}</strong>.</span>
+              </div>
+            ` : ''}
+
+            <!-- Banner de Conciliação Automática ou Item Classificado -->
+            ${expense && expense.isBalanceReconciliation ? `
+              <div class="p-3.5 bg-primary/10 dark:bg-primary/20 border border-primary/30 rounded-2xl flex flex-col gap-3 text-xs text-primary dark:text-[#ffb783] shadow-xs">
+                <div class="flex items-start gap-2.5">
+                  <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5">tune</span>
+                  <div class="flex-1">
+                    <strong class="font-bold block text-sm">Ajuste Automático de Conciliação</strong>
+                    <span class="text-[11px] opacity-90 leading-tight">Saldo não registrado restante: <strong>${fmtCurrency(expense.amount)}</strong>. Você pode transformar este valor (total ou parcialmente) em despesas com categorias reais.</span>
+                  </div>
+                </div>
+                
+                <button type="button" onclick="window.closeModal(); window.openClassifyReconciliationModal('${expense.id}', 'expense');" 
+                        class="w-full py-2.5 bg-primary text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm hover:opacity-95 active:scale-98 transition-all cursor-pointer">
+                  <span class="material-symbols-outlined text-[16px]">category</span>
+                  <span>Classificar este valor</span>
+                </button>
+
+                ${(() => {
+                  const classified = store.getReconciliationClassifiedItems(expense.monthKey, 'unregistered_expense');
+                  if (!classified || classified.length === 0) return '';
+                  return `
+                    <div class="pt-2 border-t border-primary/20 space-y-1.5">
+                      <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">Lançamentos já classificados (${classified.length}):</span>
+                      <div class="space-y-1 max-h-32 overflow-y-auto">
+                        ${classified.map(c => {
+                          const cat = store.getCategoryById(c.categoryId);
+                          return `
+                            <div class="p-2 rounded-xl bg-surface/80 dark:bg-[#241b15]/80 flex items-center justify-between text-[11px] text-on-surface">
+                              <span class="font-medium truncate flex-1">${c.name} (${cat.name})</span>
+                              <span class="font-bold shrink-0">${fmtCurrency(c.amount)}</span>
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+                    </div>
+                  `;
+                })()}
+              </div>
+            ` : ''}
+
+            ${expense && expense.isReconciliationClassification ? `
+              <div class="p-3.5 bg-primary/10 dark:bg-primary/20 border border-primary/30 rounded-2xl flex items-start gap-2.5 text-xs text-primary dark:text-[#ffb783] shadow-xs">
+                <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5">category</span>
+                <div>
+                  <strong class="font-bold block">Lançamento Classificado da Conciliação</strong>
+                  <span class="text-[11px] opacity-90 leading-tight">Este lançamento foi derivado do ajuste de conciliação. Alterações de valor ou exclusão atualizam automaticamente o saldo das despesas não registradas sem alterar seu balanço.</span>
+                </div>
+              </div>
+            ` : ''}
+
             <!-- Name (Mesmo estilo visual refinado do campo de busca) -->
             <div class="space-y-1">
               <label class="text-xs font-bold text-on-surface block">Nome da Despesa *</label>
@@ -401,13 +465,13 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
 
             <!-- Single Amount Field with Custom In-App Keypad Trigger -->
             <div class="space-y-1">
-              <label class="text-xs font-bold text-on-surface block">Valor * (Toque para digitar)</label>
-              <div id="expense-amount-box" onclick="window.openKeypadForExpenseForm()" 
+              <label class="text-xs font-bold text-on-surface block">Valor * ${expense && expense.isBalanceReconciliation ? '(Controlado pela Conciliação)' : '(Toque para digitar)'}</label>
+              <div id="expense-amount-box" onclick="${expense && expense.isBalanceReconciliation ? `window.showToast('O valor deste ajuste automático é controlado pela Conciliação de Saldo ou pelo botão Classificar.', 'info')` : `window.openKeypadForExpenseForm()`}" 
                    class="w-full px-4 py-3 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 hover:border-[#944a00]/40 dark:hover:border-[#ffb783]/40 cursor-pointer flex items-center justify-between shadow-sm transition-all">
                 <span id="expense-amount-display" class="font-price-display text-xl font-extrabold text-[#ea7355] dark:text-[#f87171]">
                   ${fmtCurrency(selectedAmount)}
                 </span>
-                <span class="material-symbols-outlined text-[#944a00]/70 dark:text-[#ffb783]/70 text-[20px]">dialpad</span>
+                <span class="material-symbols-outlined text-[#944a00]/70 dark:text-[#ffb783]/70 text-[20px]">${expense && expense.isBalanceReconciliation ? 'lock' : 'dialpad'}</span>
               </div>
               <input type="hidden" id="expense-amount" value="${selectedAmount}">
             </div>
@@ -528,14 +592,24 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
               </div>
             ` : ''}
 
-            <!-- Delete Action (Only for existing expenses) -->
+            <!-- Actions: Mover para Outro Mês e Excluir -->
             ${expense ? `
-              <div class="pt-2">
-                <button type="button" onclick="window.handleDeleteExpense('${expense.id}')" 
-                        class="w-full py-3 bg-error-container text-error rounded-2xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer hover:opacity-90 active:scale-98 transition-all">
-                  <span class="material-symbols-outlined text-[18px]">delete</span>
-                  <span>Excluir Despesa</span>
-                </button>
+              <div class="pt-2 border-t border-outline-variant/20 space-y-2.5">
+                ${!expense.isMoved && !expense.movedToMonthKey && !expense.isBalanceReconciliation && !expense.isReconciliationClassification && selectedStatus !== 'paid' ? `
+                  <button type="button" onclick="window.openMoveExpenseModal('${expense.id}')" 
+                          class="w-full py-3 bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] border border-[#944a00]/25 dark:border-[#ffb783]/25 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer hover:opacity-90 active:scale-98 transition-all shadow-xs">
+                    <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                    <span>Mover para outro mês</span>
+                  </button>
+                ` : ''}
+
+                ${!expense.isBalanceReconciliation ? `
+                  <button type="button" onclick="window.handleDeleteExpense('${expense.id}')" 
+                          class="w-full py-3 bg-error-container text-error rounded-2xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer hover:opacity-90 active:scale-98 transition-all">
+                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                    <span>${expense.isReconciliationClassification ? 'Excluir Lançamento (Valor retorna ao ajuste)' : 'Excluir Despesa'}</span>
+                  </button>
+                ` : ''}
               </div>
             ` : ''}
           </form>
@@ -772,6 +846,56 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
         <!-- Scrollable Form Body -->
         <div class="p-5 pb-8 overflow-y-auto space-y-4">
           <form id="income-form" onsubmit="window.handleSaveIncomeSubmit(event)" class="space-y-4">
+            <!-- Banner de Conciliação Automática ou Item Classificado -->
+            ${income && income.isBalanceReconciliation ? `
+              <div class="p-3.5 bg-secondary/15 dark:bg-secondary/25 border border-secondary/30 rounded-2xl flex flex-col gap-3 text-xs text-secondary dark:text-[#86efac] shadow-xs">
+                <div class="flex items-start gap-2.5">
+                  <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5">tune</span>
+                  <div class="flex-1">
+                    <strong class="font-bold block text-sm">Ajuste Automático de Conciliação</strong>
+                    <span class="text-[11px] opacity-90 leading-tight">Saldo não registrado restante: <strong>${fmtCurrency(income.amount)}</strong>. Você pode transformar este valor (total ou parcialmente) em receitas com categorias reais.</span>
+                  </div>
+                </div>
+
+                <button type="button" onclick="window.closeModal(); window.openClassifyReconciliationModal('${income.id}', 'income');" 
+                        class="w-full py-2.5 bg-secondary text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm hover:opacity-95 active:scale-98 transition-all cursor-pointer">
+                  <span class="material-symbols-outlined text-[16px]">category</span>
+                  <span>Classificar este valor</span>
+                </button>
+
+                ${(() => {
+                  const classified = store.getReconciliationClassifiedItems(income.monthKey, 'unregistered_income');
+                  if (!classified || classified.length === 0) return '';
+                  return `
+                    <div class="pt-2 border-t border-secondary/20 space-y-1.5">
+                      <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">Lançamentos já classificados (${classified.length}):</span>
+                      <div class="space-y-1 max-h-32 overflow-y-auto">
+                        ${classified.map(c => {
+                          const cat = store.getCategoryById(c.categoryId);
+                          return `
+                            <div class="p-2 rounded-xl bg-surface/80 dark:bg-[#241b15]/80 flex items-center justify-between text-[11px] text-on-surface">
+                              <span class="font-medium truncate flex-1">${c.name} (${cat.name})</span>
+                              <span class="font-bold shrink-0">${fmtCurrency(c.amount)}</span>
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+                    </div>
+                  `;
+                })()}
+              </div>
+            ` : ''}
+
+            ${income && income.isReconciliationClassification ? `
+              <div class="p-3.5 bg-secondary/15 dark:bg-secondary/25 border border-secondary/30 rounded-2xl flex items-start gap-2.5 text-xs text-secondary dark:text-[#86efac] shadow-xs">
+                <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5">category</span>
+                <div>
+                  <strong class="font-bold block">Lançamento Classificado da Conciliação</strong>
+                  <span class="text-[11px] opacity-90 leading-tight">Este lançamento foi derivado do ajuste de conciliação. Alterações de valor ou exclusão atualizam automaticamente o saldo das receitas não registradas sem alterar seu balanço.</span>
+                </div>
+              </div>
+            ` : ''}
+
             <!-- Name (Mesmo estilo visual refinado do campo de busca) -->
             <div class="space-y-1">
               <label class="text-xs font-bold text-on-surface block">Nome da Receita *</label>
@@ -782,13 +906,13 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
 
             <!-- Single Amount Field with Custom In-App Keypad Trigger -->
             <div class="space-y-1">
-              <label class="text-xs font-bold text-on-surface block">Valor * (Toque para digitar)</label>
-              <div id="income-amount-box" onclick="window.openKeypadForIncomeForm()" 
+              <label class="text-xs font-bold text-on-surface block">Valor * ${income && income.isBalanceReconciliation ? '(Controlado pela Conciliação)' : '(Toque para digitar)'}</label>
+              <div id="income-amount-box" onclick="${income && income.isBalanceReconciliation ? `window.showToast('O valor deste ajuste automático é controlado pela Conciliação de Saldo ou pelo botão Classificar.', 'info')` : `window.openKeypadForIncomeForm()`}" 
                    class="w-full px-4 py-3 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 hover:border-[#944a00]/40 dark:hover:border-[#ffb783]/40 cursor-pointer flex items-center justify-between shadow-sm transition-all">
                 <span id="income-amount-display" class="font-price-display text-xl font-extrabold text-[#309b57] dark:text-[#4ade80]">
                   ${fmtCurrency(selectedAmount)}
                 </span>
-                <span class="material-symbols-outlined text-[#944a00]/70 dark:text-[#ffb783]/70 text-[20px]">dialpad</span>
+                <span class="material-symbols-outlined text-[#944a00]/70 dark:text-[#ffb783]/70 text-[20px]">${income && income.isBalanceReconciliation ? 'lock' : 'dialpad'}</span>
               </div>
               <input type="hidden" id="income-amount" value="${selectedAmount}">
             </div>
@@ -847,13 +971,13 @@ window.openIncomeModal = function (monthKey, incomeId = null) {
               </div>
             </div>
 
-            <!-- Delete Action (Only for existing incomes) -->
-            ${income ? `
+            <!-- Delete Action (Only for existing non-reconciliation incomes) -->
+            ${income && !income.isBalanceReconciliation ? `
               <div class="pt-2">
                 <button type="button" onclick="window.handleDeleteIncome('${income.id}')" 
                         class="w-full py-3 bg-error-container text-error rounded-2xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer hover:opacity-90 active:scale-98 transition-all">
                   <span class="material-symbols-outlined text-[18px]">delete</span>
-                  <span>Excluir Receita</span>
+                  <span>${income.isReconciliationClassification ? 'Excluir Lançamento (Valor retorna ao ajuste)' : 'Excluir Receita'}</span>
                 </button>
               </div>
             ` : ''}
@@ -1620,78 +1744,498 @@ window.openMonthFiltersModal = function (type = 'expense') {
   };
 };
 
-window.openMonthCloseModal = function (monthKey) {
+window.openMoveExpenseModal = function (expenseId) {
   const container = document.getElementById('modal-container');
   if (!container) return;
 
   const store = window.financeStore;
-  const summary = store.calculateMonthSummary(monthKey);
-  const fmt = (val) => Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const expense = (store.state.expenses || []).find(e => e.id === expenseId);
+  if (!expense) return;
+
+  const currentMonthKey = expense.monthKey || store.state.currentMonthKey;
+  const currentMonthName = store.formatShortMonthYear(currentMonthKey);
+  const fmtCurrency = (val) => Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  // Calculate default next month (or generate a list of upcoming 12 months)
+  const [currY, currM] = currentMonthKey.split('-').map(Number);
+  const monthOptions = [];
+  
+  // Provide previous month + next 12 months as selectable options
+  for (let offset = -1; offset <= 12; offset++) {
+    const d = new Date(currY, (currM - 1) + offset, 1);
+    const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    if (mKey !== currentMonthKey) {
+      const label = store.formatShortMonthYear(mKey);
+      const isDefault = offset === 1; // Default is the next month
+      monthOptions.push({ key: mKey, label, isDefault });
+    }
+  }
+
+  const defaultTargetKey = monthOptions.find(o => o.isDefault)?.key || monthOptions[0].key;
 
   container.innerHTML = `
     <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
-      <div class="floating-modal-sheet rounded-t-[32px] p-5 pb-8 slide-up flex flex-col gap-4">
+      <div class="floating-modal-sheet rounded-t-[32px] p-5 pb-8 slide-up flex flex-col gap-4 border-t border-outline-variant/30">
         
+        <!-- Header -->
         <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[20px] text-primary">lock</span>
-            <h3 class="font-headline-md text-base font-bold text-on-surface">Fechamento de ${summary.monthName}</h3>
+            <div class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+            </div>
+            <h3 class="font-headline-md text-base font-bold text-on-surface">Mover Despesa</h3>
           </div>
-          <button onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer">
+          <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
             <span class="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
 
-        <div class="bg-surface-container rounded-2xl p-4 space-y-2 border border-outline-variant/30">
-          <div class="flex justify-between items-center text-xs">
-            <span class="text-on-surface-variant font-medium">Balanço Mensal:</span>
-            <strong class="${summary.forecastBalance >= 0 ? 'text-secondary' : 'text-[#dc2626]'} font-bold">${fmt(summary.forecastBalance)}</strong>
+        <!-- Expense Card Preview -->
+        <div class="p-3.5 bg-surface-container rounded-2xl border border-outline-variant/30 flex items-center justify-between gap-3">
+          <div class="min-w-0 flex-1">
+            <h4 class="font-bold text-xs text-on-surface truncate">${expense.name}</h4>
+            <div class="flex items-center gap-2 mt-0.5 text-[11px] text-on-surface-variant">
+              <span>${expense.payee || 'Sem recebedor'}</span>
+              <span>•</span>
+              <span class="font-semibold text-primary">Mês atual: ${currentMonthName}</span>
+            </div>
           </div>
-          <div class="flex justify-between items-center text-xs">
-            <span class="text-on-surface-variant font-medium">Saldo Atual Realizado:</span>
-            <strong class="${summary.actualBalance >= 0 ? 'text-secondary' : 'text-[#dc2626]'} font-bold">${fmt(summary.actualBalance)}</strong>
-          </div>
-          <div class="flex justify-between items-center text-xs">
-            <span class="text-on-surface-variant font-medium">Despesas Restantes:</span>
-            <strong class="text-on-surface font-bold">${fmt(summary.remainingExpenses)}</strong>
+          <div class="text-right shrink-0">
+            <span class="font-price-display text-sm font-extrabold text-[#dc2626] dark:text-[#ff8a80]">
+              ${fmtCurrency(expense.amount)}
+            </span>
           </div>
         </div>
 
-        <div class="space-y-3 pt-1">
-          <label class="flex items-start gap-3 p-3 bg-surface-container rounded-xl border border-outline-variant/30 cursor-pointer">
-            <input type="checkbox" id="carry-positive-balance" checked class="mt-0.5 rounded text-primary focus:ring-primary h-4 w-4">
-            <div class="text-xs">
-              <span class="font-bold text-on-surface block">Adicionar saldo restante (${fmt(summary.actualBalance)}) ao próximo mês?</span>
-              <span class="text-on-surface-variant text-[11px]">Cria uma entrada de "Saldo Trazido" no mês seguinte.</span>
-            </div>
-          </label>
-
-          <label class="flex items-start gap-3 p-3 bg-surface-container rounded-xl border border-outline-variant/30 cursor-pointer">
-            <input type="checkbox" id="carry-unpaid-expenses" checked class="mt-0.5 rounded text-primary focus:ring-primary h-4 w-4">
-            <div class="text-xs">
-              <span class="font-bold text-on-surface block">Carregar pendências não pagas para o próximo mês?</span>
-              <span class="text-on-surface-variant text-[11px]">Mantém o registro original neste mês e cria réplica com tag "Pendente do mês anterior".</span>
-            </div>
-          </label>
+        <!-- Target Month Selector -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-on-surface block">Mover para qual mês?</label>
+          <div class="relative">
+            <select id="move-target-month-select" class="w-full px-4 py-3 bg-surface-container rounded-xl border border-outline-variant/40 text-xs text-on-surface font-bold focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+              ${monthOptions.map(opt => `
+                <option value="${opt.key}" ${opt.isDefault ? 'selected' : ''}>${opt.label} (${opt.key})</option>
+              `).join('')}
+            </select>
+            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[18px]">expand_more</span>
+          </div>
         </div>
 
-        <button onclick="window.confirmCloseMonth('${monthKey}')" class="w-full py-3.5 bg-primary text-white font-bold rounded-2xl text-xs shadow-md hover:opacity-95 active:scale-98 transition-all cursor-pointer">
-          Confirmar Fechamento do Mês
-        </button>
+        <!-- Info / Explanation Box -->
+        <div class="p-3 bg-[#faeae0]/60 dark:bg-[#2e2118] rounded-xl border border-[#944a00]/20 dark:border-[#ffb783]/20 space-y-1.5">
+          <div class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-primary text-[16px] shrink-0 mt-0.5">info</span>
+            <div class="text-[11px] text-on-surface-variant leading-relaxed">
+              <p class="font-semibold text-on-surface mb-0.5">Como funciona a transferência:</p>
+              <ul class="list-disc pl-3.5 space-y-0.5">
+                <li>O lançamento em <strong>${currentMonthName}</strong> será mantido no histórico com o indicador <em>"Movida para..."</em> e <strong>não somará mais</strong> nos totais financeiros deste mês.</li>
+                <li>Uma nova pendência ativa será criada no mês de destino com o indicador <em>"Vinda de..."</em>.</li>
+                ${expense.isInstallment ? `<li class="font-bold text-primary">Apenas esta parcela (${expense.installmentNumber}/${expense.totalInstallments}) será movida. O restante do plano permanece inalterado.</li>` : ''}
+                ${expense.isRecurring ? `<li class="font-bold text-primary">Apenas esta ocorrência específica será movida.</li>` : ''}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-2.5 pt-1">
+          <button type="button" onclick="window.closeModal()" class="flex-1 py-3 bg-surface-container hover:bg-surface-variant text-on-surface font-bold rounded-2xl text-xs border border-outline-variant/30 cursor-pointer transition-all">
+            Cancelar
+          </button>
+          <button type="button" onclick="window.confirmMoveExpense('${expense.id}')" class="flex-1 py-3 bg-primary text-white font-bold rounded-2xl text-xs shadow-md hover:opacity-95 active:scale-98 cursor-pointer transition-all flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            <span>Confirmar Transferência</span>
+          </button>
+        </div>
       </div>
     </div>
   `;
 
-  window.confirmCloseMonth = function (mKey) {
-    const carryBal = document.getElementById('carry-positive-balance')?.checked || false;
-    const carryExp = document.getElementById('carry-unpaid-expenses')?.checked || false;
+  window.confirmMoveExpense = function (expId) {
+    const select = document.getElementById('move-target-month-select');
+    const targetKey = select?.value;
+    if (!targetKey) {
+      window.showToast('Selecione um mês de destino válido.', 'error');
+      return;
+    }
 
-    store.closeMonth(mKey, {
-      carryPositiveBalance: carryBal,
-      carryUnpaidExpenses: carryExp
-    });
-
-    window.closeModal();
-    window.showToast(`Mês fechado com sucesso!`, 'success');
+    const res = store.moveExpenseToMonth(expId, targetKey);
+    if (res && res.success) {
+      window.closeModal();
+      window.showToast(`Despesa movida para ${store.formatShortMonthYear(targetKey)} com sucesso!`, 'success');
+    } else {
+      window.showToast(res?.error || 'Erro ao mover despesa.', 'error');
+    }
   };
 };
+
+// ==========================================================================
+// 8. Intelligent Balance Reconciliation Modal & Preview
+// ==========================================================================
+window.openReconcileBalanceModal = function (monthKey) {
+  const store = window.financeStore;
+  const targetKey = monthKey || store.state.selectedMonthKey || store.getCurrentMonthKey();
+  const summary = store.calculateMonthSummary(targetKey);
+  const currentActualBalance = summary.actualBalance || 0;
+
+  // Open the custom in-app numeric keypad to input the real bank balance
+  window.openKeypad({
+    initialValue: currentActualBalance,
+    title: `Saldo Real em ${store.formatShortMonthYear(targetKey)}`,
+    onConfirm: (realVal) => {
+      window.openReconcileConfirmationModal(targetKey, realVal);
+    }
+  });
+};
+
+window.openReconcileConfirmationModal = function (monthKey, inputRealBalance) {
+  const container = document.getElementById('modal-container');
+  if (!container) return;
+
+  const store = window.financeStore;
+  const preview = store.calculateReconciliationPreview(monthKey, inputRealBalance);
+  const fmt = (val) => Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const isZero = preview.diferencaCents === 0;
+  const isNegative = preview.diferencaCents < 0;
+  const isPositive = preview.diferencaCents > 0;
+
+  const diffColorClass = isZero ? 'text-on-surface' : (isPositive ? 'text-[#15803d] dark:text-[#86efac]' : 'text-[#dc2626] dark:text-[#ff8a80]');
+  const diffSign = preview.diferenca > 0 ? '+' : '';
+
+  container.innerHTML = `
+    <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
+      <div class="floating-modal-sheet rounded-t-[32px] p-5 pb-8 slide-up flex flex-col gap-4 border-t border-outline-variant/30 max-w-[480px] mx-auto w-full">
+        
+        <!-- Header -->
+        <div class="flex justify-between items-center pb-2 border-b border-outline-variant/20">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">tune</span>
+            </div>
+            <div>
+              <h3 class="font-headline-md text-base font-bold text-on-surface leading-tight">Conciliação de Saldo</h3>
+              <span class="text-[11px] text-on-surface-variant">${preview.monthName}</span>
+            </div>
+          </div>
+          <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <!-- 3-Metrics Comparative Grid -->
+        <div class="grid grid-cols-3 gap-2 bg-surface-container rounded-2xl p-3 border border-outline-variant/30 text-center">
+          <div class="space-y-0.5">
+            <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">Saldo no App</span>
+            <span class="font-price-display text-xs sm:text-sm font-extrabold text-on-surface block leading-tight">
+              ${fmt(preview.saldoAtualCalculado)}
+            </span>
+          </div>
+
+          <div class="space-y-0.5 border-x border-outline-variant/30 px-1">
+            <span class="text-[10px] font-bold text-primary uppercase tracking-wider block truncate">Saldo Real</span>
+            <span class="font-price-display text-xs sm:text-sm font-black text-primary block leading-tight">
+              ${fmt(preview.saldoReal)}
+            </span>
+          </div>
+
+          <div class="space-y-0.5">
+            <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block truncate">Diferença</span>
+            <span class="font-price-display text-xs sm:text-sm font-extrabold ${diffColorClass} block leading-tight">
+              ${diffSign}${fmt(preview.diferenca)}
+            </span>
+          </div>
+        </div>
+
+        <!-- Action / Adjustment Explanation Box -->
+        <div class="p-3.5 rounded-2xl border ${isZero ? 'bg-[#dcfce7]/60 dark:bg-[#0f2e1b]/60 border-[#86efac]/30 dark:border-[#166534]/30' : (isNegative ? 'bg-[#fee2e2]/60 dark:bg-[#3b1212]/60 border-[#fca5a5]/30 dark:border-[#7f1d1d]/30' : 'bg-[#e0f2fe]/60 dark:bg-[#0c2438]/60 border-[#7dd3fc]/30 dark:border-[#075985]/30')} space-y-2">
+          <div class="flex items-start gap-2.5">
+            <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5 ${isZero ? 'text-[#15803d] dark:text-[#86efac]' : (isNegative ? 'text-[#dc2626] dark:text-[#ff8a80]' : 'text-[#0284c7] dark:text-[#7dd3fc]')}">
+              ${isZero ? 'check_circle' : (isNegative ? 'trending_down' : 'trending_up')}
+            </span>
+            <div class="text-xs text-on-surface leading-relaxed">
+              ${isZero ? `
+                <strong class="font-bold block text-sm mb-0.5">Saldo conciliado!</strong>
+                <p class="text-[11px] text-on-surface-variant">O saldo informado corresponde exatamente aos lançamentos já registrados. Nenhum ajuste automático é necessário.</p>
+              ` : (isNegative ? `
+                <strong class="font-bold block text-sm mb-0.5">Despesas não registradas</strong>
+                <p class="text-[11px] text-on-surface-variant">
+                  Será criado/ajustado o lançamento automático <strong>"Despesas não registradas"</strong> no valor de <strong class="text-[#dc2626] dark:text-[#ff8a80] font-bold">${fmt(preview.requiredExpense)}</strong> (Pago).
+                </p>
+              ` : `
+                <strong class="font-bold block text-sm mb-0.5">Receitas não registradas</strong>
+                <p class="text-[11px] text-on-surface-variant">
+                  Será criado/ajustado o lançamento automático <strong>"Receitas não registradas"</strong> no valor de <strong class="text-[#15803d] dark:text-[#86efac] font-bold">${fmt(preview.requiredIncome)}</strong> (Recebido).
+                </p>
+              `)}
+            </div>
+          </div>
+        </div>
+
+        <p class="text-[10px] text-on-surface-variant text-center px-2 leading-tight">
+          A conciliação é <strong>idempotente</strong> e recalcula os ajustes com base nas suas movimentações manuais em centavos exatos.
+        </p>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-2.5 pt-1">
+          <button type="button" onclick="window.closeModal()" class="flex-1 py-3.5 bg-surface-container hover:bg-surface-variant text-on-surface font-bold rounded-2xl text-xs border border-outline-variant/30 cursor-pointer transition-all">
+            ${isZero ? 'Fechar' : 'Cancelar'}
+          </button>
+          ${!isZero ? `
+            <button type="button" onclick="window.confirmReconcileBalance('${monthKey}', ${preview.saldoReal})" class="flex-1 py-3.5 bg-primary text-white font-bold rounded-2xl text-xs shadow-md hover:opacity-95 active:scale-98 cursor-pointer transition-all flex items-center justify-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px]">check</span>
+              <span>Confirmar Conciliação</span>
+            </button>
+          ` : `
+            <button type="button" onclick="window.confirmReconcileBalance('${monthKey}', ${preview.saldoReal})" class="flex-1 py-3.5 bg-secondary text-white font-bold rounded-2xl text-xs shadow-md hover:opacity-95 active:scale-98 cursor-pointer transition-all flex items-center justify-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px]">check</span>
+              <span>OK</span>
+            </button>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+
+  window.confirmReconcileBalance = function (mKey, realBal) {
+    const res = store.reconcileMonthBalance(mKey, realBal);
+    if (res && res.success) {
+      window.closeModal();
+      window.showToast(`Saldo conciliado para ${fmt(realBal)}!`, 'success');
+    }
+  };
+};
+
+// ==========================================================================
+// 8.5 Classify Unregistered Reconciliation Values Modal
+// ==========================================================================
+window.openClassifyReconciliationModal = function (itemId, type = 'expense') {
+  const container = document.getElementById('modal-container');
+  if (!container) return;
+
+  const store = window.financeStore;
+  const isExpense = type === 'expense' || type === 'unregistered_expense';
+  const autoItem = isExpense ? store.getExpenseById(itemId) : store.getIncomeById(itemId);
+
+  if (!autoItem) {
+    window.showToast('Lançamento automático de conciliação não encontrado.', 'error');
+    return;
+  }
+
+  const targetMonthKey = autoItem.monthKey || store.getSelectedMonthKey();
+  const availableAmount = Number(autoItem.amount) || 0;
+  const categories = store.getCategories(isExpense ? 'expense' : 'income');
+
+  let selectedAmount = availableAmount;
+  let selectedCategory = isExpense ? (categories[0]?.id || 'outras_despesas') : (categories[0]?.id || 'salario');
+  const fmtCurrency = (val) => Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  container.innerHTML = `
+    <div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm fade-in" onclick="if(event.target === this) window.closeModal()">
+      <div class="floating-modal-sheet rounded-t-[32px] p-0 slide-up flex flex-col max-h-[90vh] overflow-hidden">
+        
+        <!-- Header -->
+        <div class="sticky top-0 z-30 px-5 py-3.5 bg-surface dark:bg-[#241b15] border-b border-outline-variant/20 flex justify-between items-center shrink-0 rounded-t-[32px]">
+          <div class="flex items-center gap-2.5">
+            <button type="button" onclick="window.closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-on-surface cursor-pointer" title="Fechar">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+            <div>
+              <h3 class="font-headline-md text-base font-bold text-on-surface">
+                ${isExpense ? 'Classificar Despesa' : 'Classificar Receita'}
+              </h3>
+              <span class="text-[10px] text-on-surface-variant font-medium">De: ${autoItem.name} (${store.formatShortMonthYear(targetMonthKey)})</span>
+            </div>
+          </div>
+
+          <button type="submit" form="classify-form" 
+                  class="px-4 py-2 ${isExpense ? 'bg-[#ea7355] dark:bg-[#852f1b]' : 'bg-[#309b57] dark:bg-[#124d27]'} text-white font-bold rounded-2xl text-xs shadow-sm hover:opacity-95 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">check</span>
+            <span>Classificar</span>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 pb-8 overflow-y-auto space-y-4">
+          <!-- Available Pool Info Card -->
+          <div class="p-3.5 rounded-2xl ${isExpense ? 'bg-[#faeae0] dark:bg-[#332218] border border-[#944a00]/30 dark:border-[#ffb783]/30 text-[#944a00] dark:text-[#ffb783]' : 'bg-[#e0f2fe] dark:bg-[#0c2438] border border-[#0284c7]/30 dark:border-[#7dd3fc]/30 text-[#0284c7] dark:text-[#7dd3fc]'} flex items-start justify-between gap-3 shadow-xs">
+            <div class="flex items-start gap-2.5">
+              <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5">account_balance_wallet</span>
+              <div>
+                <strong class="font-bold text-xs block">Saldo Não Registrado Disponível</strong>
+                <span class="text-[11px] opacity-90 leading-tight">Você pode classificar este valor total ou fracionar em partes menores.</span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="font-price-display text-sm font-black block leading-tight">
+                ${fmtCurrency(availableAmount)}
+              </span>
+            </div>
+          </div>
+
+          <form id="classify-form" onsubmit="window.handleClassifySubmit(event, '${autoItem.id}', '${isExpense ? 'expense' : 'income'}')" class="space-y-4">
+            <!-- Name -->
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface block">Descrição / Nome do Lançamento *</label>
+              <input type="text" id="classify-name" required placeholder="${isExpense ? 'Ex: Mercado, Padaria, Combustível' : 'Ex: Rendimentos, Restituição, Pix recebido'}" 
+                     class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface placeholder:text-[#944a00]/50 dark:placeholder:text-[#ffb783]/50 shadow-sm transition-all">
+            </div>
+
+            <!-- Amount -->
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-xs font-bold text-on-surface block">Valor a Classificar *</label>
+                <span class="text-[10px] text-on-surface-variant">Máx: ${fmtCurrency(availableAmount)}</span>
+              </div>
+              <div id="classify-amount-box" onclick="window.openKeypadForClassifyForm(${availableAmount})" 
+                   class="w-full px-4 py-3 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 hover:border-[#944a00]/40 dark:hover:border-[#ffb783]/40 cursor-pointer flex items-center justify-between shadow-sm transition-all">
+                <span id="classify-amount-display" class="font-price-display text-xl font-extrabold ${isExpense ? 'text-[#ea7355] dark:text-[#f87171]' : 'text-[#309b57] dark:text-[#4ade80]'}">
+                  ${fmtCurrency(selectedAmount)}
+                </span>
+                <span class="material-symbols-outlined text-[#944a00]/70 dark:text-[#ffb783]/70 text-[20px]">dialpad</span>
+              </div>
+              <input type="hidden" id="classify-amount" value="${selectedAmount}">
+            </div>
+
+            <!-- Category Selector -->
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface block">Categoria Real *</label>
+              <div id="classify-categories-grid" class="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1">
+                ${categories.map(cat => {
+                  const styles = store.getCategoryCardStyles(cat);
+                  const isSelected = selectedCategory === cat.id;
+                  return `
+                    <button type="button" onclick="window.setClassifyFormCategory('${cat.id}')" data-cat-id="${cat.id}"
+                            class="category-select-btn p-2 rounded-2xl transition-all cursor-pointer flex flex-col items-center gap-1 relative shadow-xs ${isSelected ? 'ring-2 ring-primary font-bold scale-[1.02]' : 'opacity-90 hover:opacity-100'}"
+                            style="--cat-bg-light: ${styles.cardBgLight}; --cat-border-light: ${isSelected ? cat.textColor : styles.cardBorderLight}; --cat-bg-dark: ${styles.cardBgDark}; --cat-border-dark: ${isSelected ? '#ffb783' : styles.cardBorderDark};">
+                      <div class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 shadow-xs" style="background-color: ${cat.bgColor}; color: ${cat.textColor}">
+                        <span class="material-symbols-outlined text-[17px]">${cat.icon}</span>
+                      </div>
+                      <span class="text-[10px] text-on-surface dark:text-[#fcf6f2] font-semibold truncate w-full text-center">${cat.name}</span>
+                      ${isSelected ? '<span class="check-indicator material-symbols-outlined absolute top-1 right-1 text-[13px] text-primary">check_circle</span>' : ''}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- Date & Payee/Payer -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-on-surface block">Data</label>
+                <input type="date" id="classify-date" value="${targetMonthKey}-01" 
+                       min="${targetMonthKey}-01" max="${targetMonthKey}-31"
+                       class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface shadow-sm transition-all">
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-on-surface block">${isExpense ? 'Recebedor / Local' : 'Pagador / Origem'}</label>
+                <input type="text" id="classify-payee" placeholder="${isExpense ? 'Ex: Mercado Central' : 'Ex: Pagador avulso'}" 
+                       class="w-full px-4 py-2.5 bg-[#faeae0] dark:bg-[#332218] rounded-2xl border border-transparent dark:border-white/5 focus:border-[#944a00] dark:focus:border-[#ffb783] focus:outline-none text-xs font-semibold text-on-surface placeholder:text-[#944a00]/50 dark:placeholder:text-[#ffb783]/50 shadow-sm transition-all">
+              </div>
+            </div>
+
+            <!-- Info text -->
+            <p class="text-[10px] text-on-surface-variant leading-tight text-center pt-1">
+              O lançamento classificado será criado com status <strong>${isExpense ? 'Pago' : 'Recebido'}</strong> e o valor será subtraído do ajuste automático, mantendo o saldo e balanço intactos.
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+
+  window.openKeypadForClassifyForm = function (maxVal) {
+    window.openKeypad({
+      initialValue: selectedAmount,
+      title: 'Valor a Classificar',
+      onConfirm: (val) => {
+        if (val > maxVal) {
+          window.showToast(`O valor máximo disponível é ${fmtCurrency(maxVal)}.`, 'error');
+          val = maxVal;
+        }
+        selectedAmount = val;
+        const display = document.getElementById('classify-amount-display');
+        if (display) display.innerText = fmtCurrency(selectedAmount);
+        const input = document.getElementById('classify-amount');
+        if (input) input.value = selectedAmount;
+      }
+    });
+  };
+
+  window.setClassifyFormCategory = function (catId) {
+    selectedCategory = catId;
+    const btns = document.querySelectorAll('#classify-categories-grid .category-select-btn');
+    btns.forEach(btn => {
+      const isSelected = btn.getAttribute('data-cat-id') === catId;
+      const check = btn.querySelector('.check-indicator');
+      if (isSelected) {
+        btn.classList.add('ring-2', 'ring-primary', 'font-bold', 'scale-[1.02]');
+        btn.classList.remove('opacity-90');
+        if (!check) {
+          btn.insertAdjacentHTML('beforeend', '<span class="check-indicator material-symbols-outlined absolute top-1 right-1 text-[13px] text-primary">check_circle</span>');
+        }
+      } else {
+        btn.classList.remove('ring-2', 'ring-primary', 'font-bold', 'scale-[1.02]');
+        btn.classList.add('opacity-90');
+        if (check) check.remove();
+      }
+    });
+  };
+
+  window.handleClassifySubmit = function (e, autoId, itemType) {
+    e.preventDefault();
+    const nameInput = document.getElementById('classify-name');
+    const name = (nameInput?.value || '').trim();
+    const date = document.getElementById('classify-date')?.value || `${targetMonthKey}-01`;
+    const payeePayer = (document.getElementById('classify-payee')?.value || '').trim();
+
+    if (!name) {
+      if (nameInput) {
+        nameInput.classList.add('border-error', 'ring-2', 'ring-error/20');
+        if (typeof nameInput.focus === 'function') nameInput.focus();
+      }
+      window.showToast('Por favor, informe a descrição do lançamento.', 'error');
+      return;
+    }
+
+    if (selectedAmount <= 0) {
+      window.showToast('Por favor, informe um valor maior que zero.', 'error');
+      return;
+    }
+
+    if (selectedAmount > availableAmount) {
+      window.showToast(`O valor informado excede o saldo restante disponível (${fmtCurrency(availableAmount)}).`, 'error');
+      return;
+    }
+
+    let res;
+    if (itemType === 'expense') {
+      res = store.classifyReconciliationExpense({
+        reconciliationExpenseId: autoId,
+        name,
+        amount: selectedAmount,
+        categoryId: selectedCategory,
+        dueDate: date,
+        payee: payeePayer
+      });
+    } else {
+      res = store.classifyReconciliationIncome({
+        reconciliationIncomeId: autoId,
+        name,
+        amount: selectedAmount,
+        categoryId: selectedCategory,
+        expectedDate: date,
+        payer: payeePayer
+      });
+    }
+
+    if (res && res.success) {
+      window.closeModal();
+      window.showToast(`${fmtCurrency(selectedAmount)} classificado como "${name}" com sucesso!`, 'success');
+    } else {
+      window.showToast(res?.error || 'Erro ao classificar valor.', 'error');
+    }
+  };
+};
+
+

@@ -182,8 +182,17 @@ window.renderHomeView = function () {
                   ${fmt(currentSummary.forecastBalance)}
                 </span>
 
-                <!-- 3. Saldo atual (Cor neutra branca em conformidade com o tema) -->
-                <span class="text-[11px] text-white/85 font-medium tracking-wide mt-3.5">Saldo atual</span>
+                <!-- 3. Saldo atual com botão de Conciliação Inteligente -->
+                <div class="flex items-center justify-between mt-3.5">
+                  <span class="text-[11px] text-white/85 font-medium tracking-wide">Saldo atual</span>
+                  <button type="button" 
+                          onclick="event.stopPropagation(); window.openReconcileBalanceModal('${currentKey}')" 
+                          class="px-2 py-0.5 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[10px] font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-xs" 
+                          title="Atualizar / Conciliar Saldo Real">
+                    <span class="material-symbols-outlined text-[12px]">tune</span>
+                    <span>Ajustar</span>
+                  </button>
+                </div>
                 <span class="text-xl font-bold tracking-tight text-white mt-0.5 block leading-tight">
                   ${fmt(currentSummary.actualBalance)}
                 </span>

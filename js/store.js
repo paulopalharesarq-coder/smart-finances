@@ -260,6 +260,15 @@ function formatMonthName(monthKey) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
+// Helper to format Short Month / Year (e.g., "Set/2026")
+function formatShortMonthYear(monthKey) {
+  if (!monthKey || !monthKey.includes('-')) return monthKey || '';
+  const [year, month] = monthKey.split('-').map(Number);
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const mName = monthNames[month - 1] || String(month);
+  return `${mName}/${year}`;
+}
+
 // Helper to calculate next / prev month key
 function getAdjacentMonthKey(monthKey, delta) {
   if (!monthKey || !monthKey.includes('-')) return getCurrentMonthKey();
@@ -421,7 +430,16 @@ class FinanceStore {
 
   saveState() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      // Create a clean copy to persist without saving temporary search/filter states permanently
+      const stateToPersist = {
+        ...this.state,
+        monthFilterCategory: 'all',
+        monthFilterStatus: 'all',
+        monthFilterPayeePayer: 'all',
+        monthFilterPaymentMethod: 'all',
+        monthSearchQuery: ''
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToPersist));
       this.notify();
     } catch (e) {
       console.error('[FinanceStore] Error saving state to localStorage:', e);
@@ -430,7 +448,15 @@ class FinanceStore {
 
   saveStateSilently() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      const stateToPersist = {
+        ...this.state,
+        monthFilterCategory: 'all',
+        monthFilterStatus: 'all',
+        monthFilterPayeePayer: 'all',
+        monthFilterPaymentMethod: 'all',
+        monthSearchQuery: ''
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToPersist));
     } catch (e) {
       console.error('[FinanceStore] Error saving state quietly:', e);
     }
@@ -492,6 +518,10 @@ class FinanceStore {
 
   // Navigation & View State
   setActiveTab(tab) {
+    // Requirement 1: Always reset month filters whenever navigating away from month screen
+    if (this.state.activeTab === 'month' && tab !== 'month') {
+      this.clearMonthFilters(false);
+    }
     this.state.activeTab = tab;
     this.saveState();
   }
@@ -504,6 +534,8 @@ class FinanceStore {
 
   openMonthDetail(monthKey, defaultSubTab = 'expenses') {
     this.ensureMonthExists(monthKey);
+    // Requirement 1: Always reset month filters when opening month detail screen
+    this.clearMonthFilters(false);
     this.state.selectedMonthKey = monthKey;
     this.state.monthDetailTab = defaultSubTab;
     this.state.activeTab = 'month';
@@ -549,13 +581,15 @@ class FinanceStore {
     this.saveState();
   }
 
-  clearMonthFilters() {
+  clearMonthFilters(shouldSave = true) {
     this.state.monthFilterCategory = 'all';
     this.state.monthFilterStatus = 'all';
     this.state.monthFilterPayeePayer = 'all';
     this.state.monthFilterPaymentMethod = 'all';
     this.state.monthSearchQuery = '';
-    this.saveState();
+    if (shouldSave) {
+      this.saveState();
+    }
   }
 
   hasActiveFilters() {
@@ -565,6 +599,10 @@ class FinanceStore {
       (this.state.monthFilterPayeePayer && this.state.monthFilterPayeePayer !== 'all') ||
       (this.state.monthSearchQuery && this.state.monthSearchQuery.trim().length > 0)
     );
+  }
+
+  formatShortMonthYear(monthKey) {
+    return formatShortMonthYear(monthKey);
   }
 
   // Month Entity Getters
@@ -822,7 +860,14 @@ class FinanceStore {
       installmentNumber: expense.installmentNumber || null,
       totalInstallments: expense.totalInstallments || null,
       carriedFromMonthKey: expense.carriedFromMonthKey || null,
+      movedFromMonthKey: expense.movedFromMonthKey || null,
+      movedFromExpenseId: expense.movedFromExpenseId || null,
+      isMoved: Boolean(expense.isMoved),
+      movedToMonthKey: expense.movedToMonthKey || null,
+      movedToExpenseId: expense.movedToExpenseId || null,
       originalExpenseId: expense.originalExpenseId || null,
+      isBalanceReconciliation: Boolean(expense.isBalanceReconciliation),
+      reconciliationType: expense.reconciliationType || null,
       paidAt: expense.status === 'paid' ? (expense.paidAt || new Date().toISOString()) : null,
       createdAt: expense.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -834,12 +879,157 @@ class FinanceStore {
     return newExpense;
   }
 
+  // Individual Debt/Expense Transfer Engine (Preserves History & Excludes from Original Calculations)
+  moveExpenseToMonth(expenseId, targetMonthKey) {
+    if (!expenseId || !targetMonthKey) {
+      return { success: false, error: 'Parâmetros inválidos.' };
+    }
+
+    const expense = this.getExpenseById(expenseId);
+    if (!expense) {
+      return { success: false, error: 'Despesa não encontrada.' };
+    }
+
+    if (expense.status === 'paid') {
+      return { success: false, error: 'Apenas despesas pendentes podem ser transferidas para outro mês.' };
+    }
+
+    if (expense.isMoved || expense.movedToMonthKey) {
+      return { success: false, error: 'Esta despesa já foi transferida anteriormente.' };
+    }
+
+    if (expense.monthKey === targetMonthKey) {
+      return { success: false, error: 'O mês de destino deve ser diferente do mês de origem.' };
+    }
+
+    this.ensureMonthExists(targetMonthKey);
+
+    // Extract day from current dueDate or default to '10'
+    const dueDay = (expense.dueDate && expense.dueDate.includes('-')) 
+      ? expense.dueDate.split('-')[2] 
+      : '10';
+    const targetDueDate = `${targetMonthKey}-${dueDay}`;
+
+    // Create the active occurrence in destination month
+    const newExpense = {
+      id: 'exp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+      monthKey: targetMonthKey,
+      name: expense.name,
+      amount: Number(expense.amount) || 0,
+      dueDate: targetDueDate,
+      categoryId: expense.categoryId || 'outras_despesas',
+      payee: expense.payee || '',
+      status: 'pending', // Debt carried to next/other month is always pending
+      paymentMethod: expense.paymentMethod || 'credit',
+      notes: expense.notes || '',
+      isRecurring: Boolean(expense.isRecurring),
+      recurringRuleId: expense.recurringRuleId || null,
+      isInstallment: Boolean(expense.isInstallment),
+      installmentPlanId: expense.installmentPlanId || null,
+      installmentNumber: expense.installmentNumber || null,
+      totalInstallments: expense.totalInstallments || null,
+      movedFromMonthKey: expense.monthKey,
+      movedFromExpenseId: expense.id,
+      originalExpenseId: expense.originalExpenseId || expense.id,
+      isMoved: false,
+      movedToMonthKey: null,
+      movedToExpenseId: null,
+      paidAt: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (!this.state.expenses) this.state.expenses = [];
+    this.state.expenses.unshift(newExpense);
+
+    // Mark original expense as moved (historical record in original month)
+    const originalIndex = this.state.expenses.findIndex(e => e.id === expenseId);
+    if (originalIndex !== -1) {
+      this.state.expenses[originalIndex] = {
+        ...this.state.expenses[originalIndex],
+        isMoved: true,
+        movedToMonthKey: targetMonthKey,
+        movedToExpenseId: newExpense.id,
+        updatedAt: new Date().toISOString()
+      };
+    }
+
+    this.saveState();
+    return { 
+      success: true, 
+      originalExpense: this.state.expenses[originalIndex], 
+      movedExpense: newExpense 
+    };
+  }
+
   updateExpense(id, updates) {
     const index = (this.state.expenses || []).findIndex(e => e.id === id);
     if (index === -1) return null;
 
     const current = this.state.expenses[index];
     const amount = updates.amount !== undefined ? Number(updates.amount) : (updates.plannedAmount !== undefined ? Number(updates.plannedAmount) : current.amount);
+
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
+    const fromCents = (cents) => cents / 100;
+
+    // Handle amount adjustment for classified reconciliation expense
+    if (current.isReconciliationClassification && updates.amount !== undefined) {
+      const oldAmountCents = toCents(current.amount);
+      const newAmountCents = toCents(amount);
+      const diffCents = newAmountCents - oldAmountCents;
+
+      if (diffCents !== 0) {
+        const autoExpIndex = (this.state.expenses || []).findIndex(
+          e => e.monthKey === current.monthKey && e.isBalanceReconciliation && e.reconciliationType === 'unregistered_expense'
+        );
+        const autoExp = autoExpIndex !== -1 ? this.state.expenses[autoExpIndex] : null;
+        const currentAutoCents = autoExp ? toCents(autoExp.amount) : 0;
+
+        if (diffCents > currentAutoCents) {
+          // Cannot increase classified amount beyond available auto pool
+          return null;
+        }
+
+        const newAutoCents = currentAutoCents - diffCents;
+        if (newAutoCents > 0) {
+          if (autoExp) {
+            this.state.expenses[autoExpIndex] = {
+              ...autoExp,
+              amount: fromCents(newAutoCents),
+              updatedAt: new Date().toISOString()
+            };
+          } else {
+            // Re-create auto reconciliation expense
+            const newAutoExp = {
+              id: 'rec-exp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+              monthKey: current.monthKey,
+              name: 'Despesas não registradas',
+              amount: fromCents(newAutoCents),
+              dueDate: `${current.monthKey}-01`,
+              categoryId: 'outras_despesas',
+              payee: 'Ajuste de Saldo',
+              status: 'paid',
+              paymentMethod: 'other',
+              notes: 'Ajuste automático de conciliação de saldo',
+              isBalanceReconciliation: true,
+              reconciliationType: 'unregistered_expense',
+              isRecurring: false,
+              isInstallment: false,
+              isMoved: false,
+              paidAt: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            };
+            this.state.expenses.unshift(newAutoExp);
+          }
+        } else {
+          // newAutoCents === 0 -> remove auto reconciliation expense
+          if (autoExpIndex !== -1) {
+            this.state.expenses.splice(autoExpIndex, 1);
+          }
+        }
+      }
+    }
 
     const updated = {
       ...current,
@@ -854,12 +1044,62 @@ class FinanceStore {
       updated.paidAt = null;
     }
 
-    this.state.expenses[index] = updated;
+    const newIndex = (this.state.expenses || []).findIndex(e => e.id === id);
+    if (newIndex !== -1) {
+      this.state.expenses[newIndex] = updated;
+    }
     this.saveState();
     return updated;
   }
 
   deleteExpense(id) {
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
+    const fromCents = (cents) => cents / 100;
+
+    const expenseToDelete = (this.state.expenses || []).find(e => e.id === id);
+    if (!expenseToDelete) return false;
+
+    // If it is a classified reconciliation expense, return its amount to the automatic pool!
+    if (expenseToDelete.isReconciliationClassification) {
+      const returnCents = toCents(expenseToDelete.amount);
+      const autoExpIndex = (this.state.expenses || []).findIndex(
+        e => e.monthKey === expenseToDelete.monthKey && e.isBalanceReconciliation && e.reconciliationType === 'unregistered_expense'
+      );
+
+      if (autoExpIndex !== -1) {
+        const autoExp = this.state.expenses[autoExpIndex];
+        const newAutoCents = toCents(autoExp.amount) + returnCents;
+        this.state.expenses[autoExpIndex] = {
+          ...autoExp,
+          amount: fromCents(newAutoCents),
+          updatedAt: new Date().toISOString()
+        };
+      } else {
+        // Re-create the automatic reconciliation expense
+        const newAutoExp = {
+          id: 'rec-exp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+          monthKey: expenseToDelete.monthKey,
+          name: 'Despesas não registradas',
+          amount: fromCents(returnCents),
+          dueDate: `${expenseToDelete.monthKey}-01`,
+          categoryId: 'outras_despesas',
+          payee: 'Ajuste de Saldo',
+          status: 'paid',
+          paymentMethod: 'other',
+          notes: 'Ajuste automático de conciliação de saldo',
+          isBalanceReconciliation: true,
+          reconciliationType: 'unregistered_expense',
+          isRecurring: false,
+          isInstallment: false,
+          isMoved: false,
+          paidAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        this.state.expenses.unshift(newAutoExp);
+      }
+    }
+
     const prevLen = (this.state.expenses || []).length;
     this.state.expenses = (this.state.expenses || []).filter(e => e.id !== id);
     if (this.state.expenses.length !== prevLen) {
@@ -913,6 +1153,8 @@ class FinanceStore {
       isRecurring: Boolean(income.isRecurring),
       recurringRuleId: income.recurringRuleId || null,
       isBalanceCarriedOver: Boolean(income.isBalanceCarriedOver),
+      isBalanceReconciliation: Boolean(income.isBalanceReconciliation),
+      reconciliationType: income.reconciliationType || null,
       notes: (income.notes || '').trim(),
       receivedAt: income.status === 'received' ? (income.receivedAt || new Date().toISOString()) : null,
       createdAt: income.createdAt || new Date().toISOString(),
@@ -932,6 +1174,67 @@ class FinanceStore {
     const current = this.state.incomes[index];
     const amount = updates.amount !== undefined ? Number(updates.amount) : (updates.plannedAmount !== undefined ? Number(updates.plannedAmount) : current.amount);
 
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
+    const fromCents = (cents) => cents / 100;
+
+    // Handle amount adjustment for classified reconciliation income
+    if (current.isReconciliationClassification && updates.amount !== undefined) {
+      const oldAmountCents = toCents(current.amount);
+      const newAmountCents = toCents(amount);
+      const diffCents = newAmountCents - oldAmountCents;
+
+      if (diffCents !== 0) {
+        const autoIncIndex = (this.state.incomes || []).findIndex(
+          i => i.monthKey === current.monthKey && i.isBalanceReconciliation && i.reconciliationType === 'unregistered_income'
+        );
+        const autoInc = autoIncIndex !== -1 ? this.state.incomes[autoIncIndex] : null;
+        const currentAutoCents = autoInc ? toCents(autoInc.amount) : 0;
+
+        if (diffCents > currentAutoCents) {
+          // Cannot increase classified amount beyond available auto pool
+          return null;
+        }
+
+        const newAutoCents = currentAutoCents - diffCents;
+        if (newAutoCents > 0) {
+          if (autoInc) {
+            this.state.incomes[autoIncIndex] = {
+              ...autoInc,
+              amount: fromCents(newAutoCents),
+              updatedAt: new Date().toISOString()
+            };
+          } else {
+            // Re-create auto reconciliation income
+            const newAutoInc = {
+              id: 'rec-inc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+              monthKey: current.monthKey,
+              name: 'Receitas não registradas',
+              amount: fromCents(newAutoCents),
+              expectedDate: `${current.monthKey}-01`,
+              receivedDate: `${current.monthKey}-01`,
+              categoryId: 'outras_receitas',
+              payer: 'Ajuste de Saldo',
+              status: 'received',
+              notes: 'Ajuste automático de conciliação de saldo',
+              isBalanceReconciliation: true,
+              reconciliationType: 'unregistered_income',
+              isRecurring: false,
+              isBalanceCarriedOver: false,
+              receivedAt: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            };
+            this.state.incomes.unshift(newAutoInc);
+          }
+        } else {
+          // newAutoCents === 0 -> remove auto reconciliation income
+          if (autoIncIndex !== -1) {
+            this.state.incomes.splice(autoIncIndex, 1);
+          }
+        }
+      }
+    }
+
     const updated = {
       ...current,
       ...updates,
@@ -945,12 +1248,61 @@ class FinanceStore {
       updated.receivedAt = null;
     }
 
-    this.state.incomes[index] = updated;
+    const newIndex = (this.state.incomes || []).findIndex(i => i.id === id);
+    if (newIndex !== -1) {
+      this.state.incomes[newIndex] = updated;
+    }
     this.saveState();
     return updated;
   }
 
   deleteIncome(id) {
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
+    const fromCents = (cents) => cents / 100;
+
+    const incomeToDelete = (this.state.incomes || []).find(i => i.id === id);
+    if (!incomeToDelete) return false;
+
+    // If it is a classified reconciliation income, return its amount to the automatic pool!
+    if (incomeToDelete.isReconciliationClassification) {
+      const returnCents = toCents(incomeToDelete.amount);
+      const autoIncIndex = (this.state.incomes || []).findIndex(
+        i => i.monthKey === incomeToDelete.monthKey && i.isBalanceReconciliation && i.reconciliationType === 'unregistered_income'
+      );
+
+      if (autoIncIndex !== -1) {
+        const autoInc = this.state.incomes[autoIncIndex];
+        const newAutoCents = toCents(autoInc.amount) + returnCents;
+        this.state.incomes[autoIncIndex] = {
+          ...autoInc,
+          amount: fromCents(newAutoCents),
+          updatedAt: new Date().toISOString()
+        };
+      } else {
+        // Re-create the automatic reconciliation income
+        const newAutoInc = {
+          id: 'rec-inc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+          monthKey: incomeToDelete.monthKey,
+          name: 'Receitas não registradas',
+          amount: fromCents(returnCents),
+          expectedDate: `${incomeToDelete.monthKey}-01`,
+          receivedDate: `${incomeToDelete.monthKey}-01`,
+          categoryId: 'outras_receitas',
+          payer: 'Ajuste de Saldo',
+          status: 'received',
+          notes: 'Ajuste automático de conciliação de saldo',
+          isBalanceReconciliation: true,
+          reconciliationType: 'unregistered_income',
+          isRecurring: false,
+          isBalanceCarriedOver: false,
+          receivedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        this.state.incomes.unshift(newAutoInc);
+      }
+    }
+
     const prevLen = (this.state.incomes || []).length;
     this.state.incomes = (this.state.incomes || []).filter(i => i.id !== id);
     if (this.state.incomes.length !== prevLen) {
@@ -1168,13 +1520,21 @@ class FinanceStore {
     return true;
   }
 
-  // Single-Amount Calculation Engine (Exact Remaining Expenses Rule)
+  // Single-Amount Calculation Engine (Exact Remaining Expenses Rule & Zero Double-Counting)
   calculateMonthSummary(monthKey) {
     const month = this.getMonth(monthKey);
     const carriedBalance = (month && month.carriedBalanceAccepted) ? (Number(month.carriedBalance) || 0) : 0;
 
-    const expenses = (this.state.expenses || []).filter(e => e.monthKey === monthKey && e.status !== 'cancelled');
-    const incomes = (this.state.incomes || []).filter(i => i.monthKey === monthKey && i.status !== 'cancelled');
+    // Active expenses for financial totals: must not be cancelled AND must not be moved out
+    const activeExpenses = (this.state.expenses || []).filter(
+      e => e.monthKey === monthKey && e.status !== 'cancelled' && !e.isMoved && !e.movedToMonthKey
+    );
+    const allExpensesInMonth = (this.state.expenses || []).filter(
+      e => e.monthKey === monthKey && e.status !== 'cancelled'
+    );
+    const incomes = (this.state.incomes || []).filter(
+      i => i.monthKey === monthKey && i.status !== 'cancelled'
+    );
 
     // Receitas
     const plannedIncomes = incomes.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
@@ -1182,21 +1542,21 @@ class FinanceStore {
       .filter(i => i.status === 'received')
       .reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
 
-    // Despesas
-    const plannedExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-    const paidExpenses = expenses
+    // Despesas: Contabiliza apenas despesas ativas (exclui registros históricos movidos para outro mês)
+    const plannedExpenses = activeExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const paidExpenses = activeExpenses
       .filter(e => e.status === 'paid')
       .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
     
-    // Despesas Restantes: Soma exclusiva de despesas com status Pendente ou Atrasado
-    const remainingExpenses = expenses
+    // Despesas Restantes: Soma exclusiva de despesas ativas com status Pendente ou Atrasado
+    const remainingExpenses = activeExpenses
       .filter(e => e.status === 'pending' || e.status === 'overdue')
       .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
-    // Balanço Mensal: Receitas totais + Saldo Inicial Trazido - Despesas Totais
+    // Balanço Mensal: Receitas totais + Saldo Inicial Trazido - Despesas Totais Ativas
     const forecastBalance = (plannedIncomes + carriedBalance) - plannedExpenses;
 
-    // Saldo Atual Realizado: Receitas Recebidas + Saldo Inicial Trazido - Despesas Pagas
+    // Saldo Atual Realizado: Receitas Recebidas + Saldo Inicial Trazido - Despesas Pagas Ativas
     const actualBalance = (receivedIncomes + carriedBalance) - paidExpenses;
 
     let cardTone = 'neutral';
@@ -1216,23 +1576,415 @@ class FinanceStore {
       forecastBalance,
       actualBalance,
       cardTone,
-      totalExpensesCount: expenses.length,
+      totalExpensesCount: allExpensesInMonth.length,
+      activeExpensesCount: activeExpenses.length,
       totalIncomesCount: incomes.length
     };
   }
 
-  // Reports & Analytics Aggregations
+  // Base Manual Balance Calculator (in Integer Cents to guarantee idempotence and exact precision)
+  calculateManualBaseBalance(monthKey = null) {
+    const targetMonthKey = monthKey || this.getCurrentMonthKey();
+    const month = this.getMonth(targetMonthKey);
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
+    const fromCents = (cents) => cents / 100;
+
+    const carriedBalanceCents = (month && month.carriedBalanceAccepted) ? toCents(month.carriedBalance) : 0;
+
+    // Filter only manual received incomes (ignore pending, cancelled, and auto reconciliation)
+    const manualIncomes = (this.state.incomes || []).filter(
+      i => i.monthKey === targetMonthKey && i.status === 'received' && !i.isBalanceReconciliation
+    );
+    const manualReceivedIncomesCents = manualIncomes.reduce((sum, i) => sum + toCents(i.amount), 0);
+
+    // Filter only manual active paid expenses (ignore pending, cancelled, moved-out, and auto reconciliation)
+    const manualExpenses = (this.state.expenses || []).filter(
+      e => e.monthKey === targetMonthKey && e.status === 'paid' && !e.isMoved && !e.movedToMonthKey && !e.isBalanceReconciliation
+    );
+    const manualPaidExpensesCents = manualExpenses.reduce((sum, e) => sum + toCents(e.amount), 0);
+
+    const saldoBaseCents = (carriedBalanceCents + manualReceivedIncomesCents) - manualPaidExpensesCents;
+
+    return {
+      monthKey: targetMonthKey,
+      carriedBalanceCents,
+      carriedBalance: fromCents(carriedBalanceCents),
+      manualReceivedIncomesCents,
+      manualReceivedIncomes: fromCents(manualReceivedIncomesCents),
+      manualPaidExpensesCents,
+      manualPaidExpenses: fromCents(manualPaidExpensesCents),
+      saldoBaseCents,
+      saldoBase: fromCents(saldoBaseCents)
+    };
+  }
+
+  // Calculate Reconciliation Preview with Integer Cents
+  calculateReconciliationPreview(monthKey = null, inputRealBalance = 0) {
+    const targetMonthKey = monthKey || this.getCurrentMonthKey();
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
+    const fromCents = (cents) => cents / 100;
+
+    const base = this.calculateManualBaseBalance(targetMonthKey);
+    const saldoRealCents = toCents(inputRealBalance);
+    const diferencaCents = saldoRealCents - base.saldoBaseCents;
+
+    let requiredExpenseCents = 0;
+    let requiredIncomeCents = 0;
+    let actionType = 'none'; // 'expense' | 'income' | 'none'
+
+    if (diferencaCents < 0) {
+      requiredExpenseCents = Math.abs(diferencaCents);
+      actionType = 'expense';
+    } else if (diferencaCents > 0) {
+      requiredIncomeCents = diferencaCents;
+      actionType = 'income';
+    }
+
+    const summary = this.calculateMonthSummary(targetMonthKey);
+
+    return {
+      monthKey: targetMonthKey,
+      monthName: summary.monthName,
+      saldoBase: base.saldoBase,
+      saldoBaseCents: base.saldoBaseCents,
+      saldoAtualCalculado: summary.actualBalance,
+      saldoAtualCalculadoCents: toCents(summary.actualBalance),
+      saldoReal: fromCents(saldoRealCents),
+      saldoRealCents,
+      diferenca: fromCents(diferencaCents),
+      diferencaCents,
+      requiredExpense: fromCents(requiredExpenseCents),
+      requiredExpenseCents,
+      requiredIncome: fromCents(requiredIncomeCents),
+      requiredIncomeCents,
+      actionType
+    };
+  }
+
+  // Idempotent Intelligent Balance Reconciliation Engine
+  reconcileMonthBalance(monthKey = null, inputRealBalance = 0) {
+    const targetMonthKey = monthKey || this.getCurrentMonthKey();
+    this.ensureMonthExists(targetMonthKey);
+
+    const preview = this.calculateReconciliationPreview(targetMonthKey, inputRealBalance);
+
+    // 1. Manage automatic reconciliation expense
+    const existingExpIndex = (this.state.expenses || []).findIndex(
+      e => e.monthKey === targetMonthKey && e.isBalanceReconciliation && e.reconciliationType === 'unregistered_expense'
+    );
+
+    if (preview.requiredExpenseCents > 0) {
+      if (existingExpIndex !== -1) {
+        this.state.expenses[existingExpIndex] = {
+          ...this.state.expenses[existingExpIndex],
+          name: 'Despesas não registradas',
+          amount: preview.requiredExpense,
+          status: 'paid',
+          categoryId: 'outras_despesas',
+          payee: 'Ajuste de Saldo',
+          updatedAt: new Date().toISOString()
+        };
+      } else {
+        const newExpense = {
+          id: 'rec-exp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+          monthKey: targetMonthKey,
+          name: 'Despesas não registradas',
+          amount: preview.requiredExpense,
+          dueDate: `${targetMonthKey}-01`,
+          categoryId: 'outras_despesas',
+          payee: 'Ajuste de Saldo',
+          status: 'paid',
+          paymentMethod: 'other',
+          notes: 'Ajuste automático de conciliação de saldo',
+          isBalanceReconciliation: true,
+          reconciliationType: 'unregistered_expense',
+          isRecurring: false,
+          isInstallment: false,
+          isMoved: false,
+          paidAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        this.state.expenses.unshift(newExpense);
+      }
+    } else {
+      if (existingExpIndex !== -1) {
+        this.state.expenses.splice(existingExpIndex, 1);
+      }
+    }
+
+    // 2. Manage automatic reconciliation income
+    const existingIncIndex = (this.state.incomes || []).findIndex(
+      i => i.monthKey === targetMonthKey && i.isBalanceReconciliation && i.reconciliationType === 'unregistered_income'
+    );
+
+    if (preview.requiredIncomeCents > 0) {
+      if (existingIncIndex !== -1) {
+        this.state.incomes[existingIncIndex] = {
+          ...this.state.incomes[existingIncIndex],
+          name: 'Receitas não registradas',
+          amount: preview.requiredIncome,
+          status: 'received',
+          categoryId: 'outras_receitas',
+          payer: 'Ajuste de Saldo',
+          updatedAt: new Date().toISOString()
+        };
+      } else {
+        const newIncome = {
+          id: 'rec-inc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+          monthKey: targetMonthKey,
+          name: 'Receitas não registradas',
+          amount: preview.requiredIncome,
+          expectedDate: `${targetMonthKey}-01`,
+          receivedDate: `${targetMonthKey}-01`,
+          categoryId: 'outras_receitas',
+          payer: 'Ajuste de Saldo',
+          status: 'received',
+          notes: 'Ajuste automático de conciliação de saldo',
+          isBalanceReconciliation: true,
+          reconciliationType: 'unregistered_income',
+          isRecurring: false,
+          isBalanceCarriedOver: false,
+          receivedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        this.state.incomes.unshift(newIncome);
+      }
+    } else {
+      if (existingIncIndex !== -1) {
+        this.state.incomes.splice(existingIncIndex, 1);
+      }
+    }
+
+    // 3. Save reconciliation metadata on month entity
+    const month = this.getMonth(targetMonthKey);
+    if (month) {
+      month.lastReconciledBalance = preview.saldoReal;
+      month.lastReconciliationAt = new Date().toISOString();
+    }
+
+    this.saveState();
+    return { success: true, preview };
+  }
+
+  // Dedicated Classification Engine: Unregistered Values -> Real Categorized Items
+  classifyReconciliationExpense({ reconciliationExpenseId = null, monthKey = null, name, amount, categoryId, dueDate, payee, notes }) {
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
+    const fromCents = (cents) => cents / 100;
+
+    const targetMonthKey = monthKey || this.getCurrentMonthKey();
+    let autoExpIndex = -1;
+    if (reconciliationExpenseId) {
+      autoExpIndex = (this.state.expenses || []).findIndex(e => e.id === reconciliationExpenseId);
+    }
+    if (autoExpIndex === -1) {
+      autoExpIndex = (this.state.expenses || []).findIndex(
+        e => e.monthKey === targetMonthKey && e.isBalanceReconciliation && e.reconciliationType === 'unregistered_expense'
+      );
+    }
+
+    if (autoExpIndex === -1) {
+      return { success: false, error: 'Lançamento automático de conciliação não encontrado.' };
+    }
+
+    const autoExp = this.state.expenses[autoExpIndex];
+    const autoCents = toCents(autoExp.amount);
+    const classifyCents = toCents(amount);
+
+    if (classifyCents <= 0) {
+      return { success: false, error: 'O valor da classificação deve ser maior que zero.' };
+    }
+
+    if (classifyCents > autoCents) {
+      return { 
+        success: false, 
+        error: `O valor informado (${fromCents(classifyCents).toFixed(2)}) excede o saldo restante disponível (${fromCents(autoCents).toFixed(2)}).` 
+      };
+    }
+
+    const trimmedName = (name || '').trim();
+    if (!trimmedName) {
+      return { success: false, error: 'Por favor, informe a descrição do lançamento classificado.' };
+    }
+
+    const targetDueDate = dueDate || autoExp.dueDate || `${autoExp.monthKey}-01`;
+    const itemMonth = targetDueDate.slice(0, 7);
+    const effectiveDueDate = itemMonth === autoExp.monthKey ? targetDueDate : `${autoExp.monthKey}-01`;
+
+    const newClassifiedExpense = {
+      id: 'exp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+      monthKey: autoExp.monthKey,
+      name: trimmedName,
+      amount: fromCents(classifyCents),
+      dueDate: effectiveDueDate,
+      categoryId: categoryId || 'outras_despesas',
+      payee: (payee || '').trim(),
+      status: 'paid', // Classified expense is settled
+      paymentMethod: 'other',
+      notes: (notes || '').trim(),
+      isReconciliationClassification: true,
+      reconciliationSourceId: autoExp.id,
+      reconciliationType: 'unregistered_expense',
+      paidAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const newAutoCents = autoCents - classifyCents;
+
+    // Atomic update
+    if (newAutoCents > 0) {
+      this.state.expenses[autoExpIndex] = {
+        ...autoExp,
+        amount: fromCents(newAutoCents),
+        updatedAt: new Date().toISOString()
+      };
+    } else {
+      // Automatic pool reaches 0 -> remove card
+      this.state.expenses.splice(autoExpIndex, 1);
+    }
+
+    this.state.expenses.unshift(newClassifiedExpense);
+    this.saveState();
+
+    return { 
+      success: true, 
+      classifiedExpense: newClassifiedExpense, 
+      remainingAutoAmount: fromCents(newAutoCents) 
+    };
+  }
+
+  classifyReconciliationIncome({ reconciliationIncomeId = null, monthKey = null, name, amount, categoryId, expectedDate, payer, notes }) {
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
+    const fromCents = (cents) => cents / 100;
+
+    const targetMonthKey = monthKey || this.getCurrentMonthKey();
+    let autoIncIndex = -1;
+    if (reconciliationIncomeId) {
+      autoIncIndex = (this.state.incomes || []).findIndex(i => i.id === reconciliationIncomeId);
+    }
+    if (autoIncIndex === -1) {
+      autoIncIndex = (this.state.incomes || []).findIndex(
+        i => i.monthKey === targetMonthKey && i.isBalanceReconciliation && i.reconciliationType === 'unregistered_income'
+      );
+    }
+
+    if (autoIncIndex === -1) {
+      return { success: false, error: 'Lançamento automático de conciliação não encontrado.' };
+    }
+
+    const autoInc = this.state.incomes[autoIncIndex];
+    const autoCents = toCents(autoInc.amount);
+    const classifyCents = toCents(amount);
+
+    if (classifyCents <= 0) {
+      return { success: false, error: 'O valor da classificação deve ser maior que zero.' };
+    }
+
+    if (classifyCents > autoCents) {
+      return { 
+        success: false, 
+        error: `O valor informado (${fromCents(classifyCents).toFixed(2)}) excede o saldo restante disponível (${fromCents(autoCents).toFixed(2)}).` 
+      };
+    }
+
+    const trimmedName = (name || '').trim();
+    if (!trimmedName) {
+      return { success: false, error: 'Por favor, informe a descrição da receita classificada.' };
+    }
+
+    const targetDate = expectedDate || autoInc.expectedDate || `${autoInc.monthKey}-01`;
+    const itemMonth = targetDate.slice(0, 7);
+    const effectiveDate = itemMonth === autoInc.monthKey ? targetDate : `${autoInc.monthKey}-01`;
+
+    const newClassifiedIncome = {
+      id: 'inc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+      monthKey: autoInc.monthKey,
+      name: trimmedName,
+      amount: fromCents(classifyCents),
+      expectedDate: effectiveDate,
+      receivedDate: effectiveDate,
+      categoryId: categoryId || 'salario',
+      payer: (payer || '').trim(),
+      status: 'received', // Classified income is settled
+      notes: (notes || '').trim(),
+      isReconciliationClassification: true,
+      reconciliationSourceId: autoInc.id,
+      reconciliationType: 'unregistered_income',
+      receivedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const newAutoCents = autoCents - classifyCents;
+
+    // Atomic update
+    if (newAutoCents > 0) {
+      this.state.incomes[autoIncIndex] = {
+        ...autoInc,
+        amount: fromCents(newAutoCents),
+        updatedAt: new Date().toISOString()
+      };
+    } else {
+      // Automatic pool reaches 0 -> remove card
+      this.state.incomes.splice(autoIncIndex, 1);
+    }
+
+    this.state.incomes.unshift(newClassifiedIncome);
+    this.saveState();
+
+    return { 
+      success: true, 
+      classifiedIncome: newClassifiedIncome, 
+      remainingAutoAmount: fromCents(newAutoCents) 
+    };
+  }
+
+  updateReconciliationClassification({ id, type = 'expense', updates }) {
+    if (type === 'income') {
+      return this.updateIncome(id, updates);
+    }
+    return this.updateExpense(id, updates);
+  }
+
+  deleteReconciliationClassification(id, type = 'expense') {
+    if (type === 'income') {
+      return this.deleteIncome(id);
+    }
+    return this.deleteExpense(id);
+  }
+
+  getReconciliationClassifiedItems(monthKey, type = 'unregistered_expense') {
+    if (!monthKey) return [];
+    if (type === 'unregistered_income' || type === 'income') {
+      return (this.state.incomes || []).filter(
+        i => i.monthKey === monthKey && i.isReconciliationClassification && i.reconciliationType === 'unregistered_income'
+      );
+    }
+    return (this.state.expenses || []).filter(
+      e => e.monthKey === monthKey && e.isReconciliationClassification && e.reconciliationType === 'unregistered_expense'
+    );
+  }
+
+  // Reports & Analytics Aggregations (Zero Double-Counting)
   getReportsBreakdown({ type = 'expense', periodMode = 'month', monthKey = null, year = null, startDate = null, endDate = null, status = 'all' } = {}) {
     const isExpense = type === 'expense';
     const rawItems = isExpense ? (this.state.expenses || []) : (this.state.incomes || []);
 
     const filteredItems = rawItems.filter(item => {
+      // Ignore cancelled items
+      if (item.status === 'cancelled') return false;
+
+      // EXCLUDE historical moved-out expenses to avoid double counting across all report periods!
+      if (isExpense && (item.isMoved || item.movedToMonthKey)) return false;
+
       // 1. Filter by Status
       if (status !== 'all') {
         if (status === 'paid' || status === 'received') {
           if (item.status !== 'paid' && item.status !== 'received') return false;
         } else if (status === 'pending') {
-          if (item.status !== 'pending') return false;
+          if (item.status !== 'pending' && item.status !== 'overdue') return false;
         }
       }
 
@@ -1259,28 +2011,34 @@ class FinanceStore {
 
     // 3. Aggregate by Category
     const categoryMap = {};
-    let totalAmount = 0;
+    let totalCents = 0;
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
 
     filteredItems.forEach(item => {
       const catId = item.categoryId || (isExpense ? 'outras_despesas' : 'outras_receitas');
-      const val = Number(item.amount || item.plannedAmount || 0);
-      totalAmount += val;
+      const valCents = toCents(item.amount || item.plannedAmount || 0);
+      totalCents += valCents;
 
       if (!categoryMap[catId]) {
         categoryMap[catId] = {
           category: this.getCategoryById(catId),
-          total: 0,
+          totalCents: 0,
           count: 0
         };
       }
-      categoryMap[catId].total += val;
+      categoryMap[catId].totalCents += valCents;
       categoryMap[catId].count += 1;
     });
 
+    const totalAmount = totalCents / 100;
+
     const categories = Object.values(categoryMap).map(c => {
-      const pct = totalAmount > 0 ? (c.total / totalAmount) * 100 : 0;
+      const catTotal = c.totalCents / 100;
+      const pct = totalCents > 0 ? (c.totalCents / totalCents) * 100 : 0;
       return {
-        ...c,
+        category: c.category,
+        total: catTotal,
+        count: c.count,
         percentage: pct
       };
     }).sort((a, b) => b.total - a.total);
@@ -1299,6 +2057,7 @@ class FinanceStore {
     const isExpense = type === 'expense';
     const rawItems = isExpense ? (this.state.expenses || []) : (this.state.incomes || []);
     const monthsData = [];
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
 
     const monthNamesShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const currentKey = this.getCurrentMonthKey();
@@ -1308,11 +2067,14 @@ class FinanceStore {
       const monthKey = `${targetYear}-${monthStr}`;
 
       const itemsInMonth = rawItems.filter(item => {
+        if (item.status === 'cancelled') return false;
+        if (isExpense && (item.isMoved || item.movedToMonthKey)) return false;
+
         if (status !== 'all') {
           if (status === 'paid' || status === 'received') {
             if (item.status !== 'paid' && item.status !== 'received') return false;
           } else if (status === 'pending') {
-            if (item.status !== 'pending') return false;
+            if (item.status !== 'pending' && item.status !== 'overdue') return false;
           }
         }
         const itemDate = isExpense 
@@ -1322,7 +2084,8 @@ class FinanceStore {
         return itemMonthKey === monthKey;
       });
 
-      const total = itemsInMonth.reduce((acc, item) => acc + Number(item.amount || item.plannedAmount || 0), 0);
+      const totalCents = itemsInMonth.reduce((acc, item) => acc + toCents(item.amount || item.plannedAmount || 0), 0);
+      const total = totalCents / 100;
 
       monthsData.push({
         monthIndex: m,
@@ -1336,12 +2099,13 @@ class FinanceStore {
     }
 
     const maxMonthlyTotal = Math.max(...monthsData.map(m => m.total), 0);
+    const annualTotalCents = monthsData.reduce((acc, m) => acc + toCents(m.total), 0);
 
     return {
       year: targetYear,
       months: monthsData,
       maxMonthlyTotal,
-      annualTotal: monthsData.reduce((acc, m) => acc + m.total, 0)
+      annualTotal: annualTotalCents / 100
     };
   }
 

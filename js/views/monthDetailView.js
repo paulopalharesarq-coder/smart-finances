@@ -17,7 +17,7 @@ window.renderMonthDetailView = function () {
 
   return `
     <div class="pb-44">
-      <!-- TopAppBar com Botão Voltar para a Home -->
+      <!-- TopAppBar com Botão Voltar para a Home & Conciliar Saldo -->
       <header class="bg-background flex justify-between items-center w-full px-5 py-3.5 sticky top-0 z-30">
         <div class="flex items-center gap-2.5">
           <button onclick="window.financeStore.setActiveTab('home')" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-variant text-on-surface active:scale-95 transition-all cursor-pointer" title="Voltar ao início">
@@ -25,17 +25,18 @@ window.renderMonthDetailView = function () {
           </button>
           <div>
             <h1 class="font-headline-xl-mobile text-lg font-bold text-on-surface leading-tight">${summary.monthName}</h1>
-            <span class="text-on-surface-variant text-xs font-medium">${summary.monthStatus === 'closed' ? 'Mês Fechado' : 'Mês Aberto'}</span>
+            <span class="text-on-surface-variant text-xs font-medium">Controle Mensal</span>
           </div>
         </div>
-        <div class="flex items-center gap-1.5">
-          <button onclick="window.openMonthCloseModal('${monthKey}')" 
-                  class="px-3.5 py-2 rounded-2xl bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer" 
-                  title="Fechar Mês">
-            <span class="material-symbols-outlined text-[17px]">lock</span>
-            <span>Fechamento</span>
-          </button>
-        </div>
+
+        <!-- Botão Conciliar Saldo do Mês -->
+        <button type="button" 
+                onclick="window.openReconcileBalanceModal('${monthKey}')" 
+                class="px-3 py-1.5 rounded-2xl bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] border border-[#944a00]/25 dark:border-[#ffb783]/25 font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs" 
+                title="Conciliar Saldo Real">
+          <span class="material-symbols-outlined text-[16px]">tune</span>
+          <span class="hidden sm:inline">Conciliar</span>
+        </button>
       </header>
 
       <!-- Main Content -->
@@ -58,7 +59,7 @@ window.renderMonthDetailView = function () {
           </button>
         </div>
 
-        <!-- Barra de Busca & Botão de Filtros (Na mesma linguagem visual do botão Fechamento) -->
+        <!-- Barra de Busca & Botão de Filtros -->
         <div class="flex items-center gap-2">
           <div class="relative flex-1">
             <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#944a00]/70 dark:text-[#ffb783]/70 text-[18px]">search</span>
@@ -76,7 +77,7 @@ window.renderMonthDetailView = function () {
             </button>
           </div>
 
-          <!-- Botão de Filtros (Mesma linguagem visual do botão Fechamento) -->
+          <!-- Botão de Filtros -->
           <button onclick="window.openMonthFiltersModal('${activeTab === 'expenses' ? 'expense' : 'income'}')" 
                   class="px-3.5 py-2.5 rounded-2xl ${hasFilters ? 'bg-primary text-white border-primary shadow-sm' : 'bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] border border-transparent dark:border-white/5'} font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer"
                   title="Filtros">
@@ -155,9 +156,11 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
       const styles = store.getCategoryCardStyles(cat);
       const isPaid = exp.status === 'paid';
       const isOverdue = exp.status === 'overdue' || (exp.dueDate && exp.dueDate < new Date().toISOString().slice(0, 10) && !isPaid);
+      const isMovedOut = Boolean(exp.isMoved || exp.movedToMonthKey);
+      const isMovedIn = Boolean(exp.movedFromMonthKey);
 
       return `
-        <div class="category-tinted-card rounded-2xl p-4 border transition-all shadow-sm group relative" 
+        <div class="category-tinted-card rounded-2xl p-4 border transition-all shadow-sm group relative ${isMovedOut ? 'opacity-80' : ''}" 
              style="--card-bg: ${styles.cardBgLight}; --card-border: ${styles.cardBorderLight}; --card-bg-dark: ${styles.cardBgDark}; --card-border-dark: ${styles.cardBorderDark};">
           
           <div class="flex justify-between items-center gap-2">
@@ -170,13 +173,23 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
               </h4>
             </div>
 
-            <button type="button" 
-                    onclick="event.stopPropagation(); window.openStatusPickerModal({ id: '${exp.id}', type: 'expense', currentStatus: '${exp.status}' })" 
-                    class="px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${isPaid ? 'bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border border-[#86efac] dark:border-[#166534]' : 'bg-[#fee2e2] dark:bg-[#3b1212] text-[#dc2626] dark:text-[#fca5a5] border border-[#fca5a5] dark:border-[#7f1d1d]'}"
-                    title="Alterar situação">
-              <span class="material-symbols-outlined text-[15px]">${isPaid ? 'check_circle' : 'schedule'}</span>
-              <span>${isPaid ? 'Pago' : isOverdue ? 'Atrasado' : 'Pendente'}</span>
-            </button>
+            ${isMovedOut ? `
+              <button type="button" 
+                      onclick="event.stopPropagation(); window.openExpenseModal('${monthKey}', '${exp.id}')" 
+                      class="px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] border border-[#944a00]/30 dark:border-[#ffb783]/30"
+                      title="Despesa transferida para outro mês">
+                <span class="material-symbols-outlined text-[15px]">redo</span>
+                <span>Movida</span>
+              </button>
+            ` : `
+              <button type="button" 
+                      onclick="event.stopPropagation(); window.openStatusPickerModal({ id: '${exp.id}', type: 'expense', currentStatus: '${exp.status}' })" 
+                      class="px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${isPaid ? 'bg-[#dcfce7] dark:bg-[#0f2e1b] text-[#15803d] dark:text-[#86efac] border border-[#86efac] dark:border-[#166534]' : 'bg-[#fee2e2] dark:bg-[#3b1212] text-[#dc2626] dark:text-[#fca5a5] border border-[#fca5a5] dark:border-[#7f1d1d]'}"
+                      title="Alterar situação">
+                <span class="material-symbols-outlined text-[15px]">${isPaid ? 'check_circle' : 'schedule'}</span>
+                <span>${isPaid ? 'Pago' : isOverdue ? 'Atrasado' : 'Pendente'}</span>
+              </button>
+            `}
           </div>
 
           <div class="my-2 cursor-pointer" onclick="window.openExpenseModal('${monthKey}', '${exp.id}')">
@@ -195,7 +208,7 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
               <span>${exp.dueDate ? exp.dueDate.split('-').reverse().slice(0, 2).join('/') : 'Sem data'}</span>
             </div>
 
-            <div class="col-span-2 sm:col-span-1 flex items-center gap-1.5 justify-between sm:justify-end text-[11px] text-on-surface-variant font-medium">
+            <div class="col-span-2 sm:col-span-1 flex items-center gap-1.5 justify-between sm:justify-end text-[11px] text-on-surface-variant font-medium flex-wrap">
               <span class="truncate">${exp.payee ? exp.payee : '—'}</span>
               ${exp.isInstallment ? `
                 <span class="px-2 py-0.5 rounded-lg bg-primary text-white text-[10px] font-black shrink-0 shadow-sm">
@@ -208,9 +221,22 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
                   <span>Recorrente</span>
                 </span>
               ` : ''}
-              ${exp.carriedFromMonthKey ? `
-                <span class="px-1.5 py-0.5 rounded-lg bg-tertiary-fixed text-tertiary text-[10px] font-bold shrink-0">
-                  Pendente
+              ${isMovedOut ? `
+                <span class="px-2 py-0.5 rounded-lg bg-[#faeae0] dark:bg-[#332218] text-[#944a00] dark:text-[#ffb783] text-[10px] font-bold shrink-0 flex items-center gap-1 border border-[#944a00]/20 dark:border-[#ffb783]/20" title="Transferida para ${store.formatShortMonthYear(exp.movedToMonthKey)}">
+                  <span class="material-symbols-outlined text-[12px]">redo</span>
+                  <span>Movida para ${store.formatShortMonthYear(exp.movedToMonthKey)}</span>
+                </span>
+              ` : ''}
+              ${isMovedIn ? `
+                <span class="px-2 py-0.5 rounded-lg bg-[#e0f2fe] dark:bg-[#0c2438] text-[#0284c7] dark:text-[#7dd3fc] text-[10px] font-bold shrink-0 flex items-center gap-1 border border-[#0284c7]/20 dark:border-[#7dd3fc]/20" title="Vinda de ${store.formatShortMonthYear(exp.movedFromMonthKey)}">
+                  <span class="material-symbols-outlined text-[12px]">undo</span>
+                  <span>Vinda de ${store.formatShortMonthYear(exp.movedFromMonthKey)}</span>
+                </span>
+              ` : ''}
+              ${exp.isBalanceReconciliation ? `
+                <span class="px-2 py-0.5 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary dark:text-[#ffb783] text-[10px] font-bold shrink-0 flex items-center gap-1 border border-primary/25" title="Ajuste automático de conciliação de saldo">
+                  <span class="material-symbols-outlined text-[12px]">tune</span>
+                  <span>Ajuste automático</span>
                 </span>
               ` : ''}
             </div>
@@ -298,6 +324,12 @@ window.getMonthItemsHtml = function (monthKey, activeTab) {
                   <span>Recorrente</span>
                 </span>
               ` : ''}
+              ${inc.isBalanceReconciliation ? `
+                <span class="px-2 py-0.5 rounded-lg bg-secondary/15 dark:bg-secondary/25 text-secondary dark:text-[#86efac] text-[10px] font-bold shrink-0 flex items-center gap-1 border border-secondary/25" title="Ajuste automático de conciliação de saldo">
+                  <span class="material-symbols-outlined text-[12px]">tune</span>
+                  <span>Ajuste automático</span>
+                </span>
+              ` : ''}
             </div>
           </div>
         </div>
@@ -320,6 +352,8 @@ window.getMonthSummaryDockHtml = function (monthKey, activeTab) {
   let visibleTotal = 0;
   if (activeTab === 'expenses') {
     const expenses = store.getExpensesByMonth(monthKey).filter(e => {
+      // Exclude historical moved-out expenses from dock totals!
+      if (e.isMoved || e.movedToMonthKey) return false;
       const matchesSearch = !searchQuery || (e.name && e.name.toLowerCase().includes(searchQuery)) || (e.payee && e.payee.toLowerCase().includes(searchQuery));
       const matchesCategory = categoryFilter === 'all' || e.categoryId === categoryFilter;
       const matchesStatus = statusFilter === 'all' || e.status === statusFilter;
