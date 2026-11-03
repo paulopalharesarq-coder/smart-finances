@@ -1048,6 +1048,19 @@ class FinanceStore {
     if (newIndex !== -1) {
       this.state.expenses[newIndex] = updated;
     }
+
+    // Keep installmentPlan totalAmount synchronized if an installment amount was edited directly
+    if (current.isInstallment && current.installmentPlanId && updates.amount !== undefined) {
+      const plan = (this.state.installmentPlans || []).find(p => p.id === current.installmentPlanId);
+      if (plan) {
+        const activeInst = (this.state.expenses || []).filter(
+          e => e.installmentPlanId === plan.id && !e.isMoved && !e.movedToMonthKey
+        );
+        const totalCents = activeInst.reduce((sum, e) => sum + toCents(e.amount), 0);
+        plan.totalAmount = fromCents(totalCents);
+      }
+    }
+
     this.saveState();
     return updated;
   }
@@ -1390,6 +1403,224 @@ class FinanceStore {
     return (this.state.expenses || [])
       .filter(e => e.installmentPlanId === planId)
       .sort((a, b) => (a.installmentNumber || 0) - (b.installmentNumber || 0));
+  }
+
+  // Update Installment Occurrence with Scope Control ('current' | 'future' | 'all')
+  updateInstallmentOccurrence(expenseId, updates = {}, scope = 'current') {
+    if (!expenseId) return null;
+
+    const currentExpense = this.getExpenseById(expenseId);
+    if (!currentExpense) return null;
+
+    // If this expense is not an installment, fallback safely to standard single updateExpense
+    if (!currentExpense.isInstallment || !currentExpense.installmentPlanId) {
+      return this.updateExpense(expenseId, updates);
+    }
+
+    const planId = currentExpense.installmentPlanId;
+    const plan = (this.state.installmentPlans || []).find(p => p.id === planId);
+
+    // Filter financially active occurrences (exclude historical moved-out records to avoid double counting)
+    const activeInstallments = (this.state.expenses || [])
+      .filter(e => e.installmentPlanId === planId && !e.isMoved && !e.movedToMonthKey)
+      .sort((a, b) => (a.installmentNumber || 0) - (b.installmentNumber || 0));
+
+    const currentNumber = currentExpense.installmentNumber || 1;
+    const totalCount = currentExpense.totalInstallments || (plan ? plan.totalInstallments : 10);
+
+    // Determine target occurrences to update based on scope
+    let targetInstallments = [];
+    if (scope === 'all') {
+      targetInstallments = activeInstallments;
+    } else if (scope === 'future') {
+      targetInstallments = activeInstallments.filter(e => (e.installmentNumber || 0) >= currentNumber);
+      if (!targetInstallments.some(e => e.id === currentExpense.id)) {
+        targetInstallments.push(currentExpense);
+      }
+    } else {
+      // 'current' - only this occurrence
+      targetInstallments = [currentExpense];
+    }
+
+    // Helper functions for currency math in integer cents
+    const toCents = (val) => Math.round((Number(val) || 0) * 100);
+    const fromCents = (cents) => cents / 100;
+
+    // 1. Base Name / Description Extraction (Preserves (i/count) numbering suffix)
+    let baseDescription = '';
+    if (updates.name !== undefined) {
+      baseDescription = updates.name.replace(/\s*\(\d+\/\d+\)\s*$/, '').trim();
+      if (!baseDescription) baseDescription = updates.name.trim();
+    } else if (plan && plan.description) {
+      baseDescription = plan.description;
+    }
+
+    // 2. Amount Update
+    const hasNewAmount = updates.amount !== undefined || updates.plannedAmount !== undefined;
+    const newAmount = hasNewAmount 
+      ? Number(updates.amount !== undefined ? updates.amount : updates.plannedAmount) 
+      : null;
+
+    // 3. Due Date Handling (Preserves sequence across months without copying identical date)
+    let newDayInt = null;
+    let deltaMonths = 0;
+    if (updates.dueDate) {
+      const parts = updates.dueDate.split('-');
+      newDayInt = parseInt(parts[2], 10) || 10;
+      const newMonthKey = parts.slice(0, 2).join('-');
+      const origTargetMonthKey = currentExpense.dueDate ? currentExpense.dueDate.substring(0, 7) : currentExpense.monthKey;
+      if (newMonthKey && origTargetMonthKey && newMonthKey !== origTargetMonthKey) {
+        const [origY, origM] = origTargetMonthKey.split('-').map(Number);
+        const [newY, newM] = newMonthKey.split('-').map(Number);
+        deltaMonths = (newY - origY) * 12 + (newM - origM);
+      }
+    }
+
+    // 4. Atomic In-Memory Updates Across All Target Occurrences
+    const nowIso = new Date().toISOString();
+    for (const item of targetInstallments) {
+      const isTarget = item.id === currentExpense.id;
+
+      // Handle classified reconciliation pool adjustment if applicable
+      if (item.isReconciliationClassification && hasNewAmount) {
+        const oldAmountCents = toCents(item.amount);
+        const newAmountCents = toCents(newAmount);
+        const diffCents = newAmountCents - oldAmountCents;
+        if (diffCents !== 0) {
+          const autoExpIndex = (this.state.expenses || []).findIndex(
+            e => e.monthKey === item.monthKey && e.isBalanceReconciliation && e.reconciliationType === 'unregistered_expense'
+          );
+          const autoExp = autoExpIndex !== -1 ? this.state.expenses[autoExpIndex] : null;
+          const currentAutoCents = autoExp ? toCents(autoExp.amount) : 0;
+          if (diffCents <= currentAutoCents) {
+            const newAutoCents = currentAutoCents - diffCents;
+            if (newAutoCents > 0) {
+              if (autoExp) {
+                this.state.expenses[autoExpIndex] = {
+                  ...autoExp,
+                  amount: fromCents(newAutoCents),
+                  updatedAt: nowIso
+                };
+              }
+            } else if (autoExpIndex !== -1) {
+              this.state.expenses.splice(autoExpIndex, 1);
+            }
+          }
+        }
+      }
+
+      // Update Amount
+      if (hasNewAmount) {
+        item.amount = newAmount;
+      }
+
+      // Update Name with numbering preserved (e.g. "Notebook (4/10)")
+      if (baseDescription) {
+        const num = item.installmentNumber || currentNumber;
+        const total = item.totalInstallments || totalCount;
+        item.name = `${baseDescription} (${num}/${total})`;
+      }
+
+      // Update Category
+      if (updates.categoryId) {
+        item.categoryId = updates.categoryId;
+      }
+
+      // Update Payee
+      if (updates.payee !== undefined) {
+        item.payee = updates.payee.trim();
+      }
+
+      // Update Notes
+      if (updates.notes !== undefined) {
+        item.notes = updates.notes.trim();
+      }
+
+      // Update Payment Method
+      if (updates.paymentMethod !== undefined) {
+        item.paymentMethod = updates.paymentMethod;
+      }
+
+      // Update Due Date
+      if (updates.dueDate) {
+        if (isTarget) {
+          item.dueDate = updates.dueDate;
+          const newMonthKey = updates.dueDate.substring(0, 7);
+          if (newMonthKey && newMonthKey !== item.monthKey) {
+            item.monthKey = newMonthKey;
+            this.ensureMonthExists(item.monthKey);
+          }
+        } else {
+          let targetMonth = item.monthKey || (item.dueDate ? item.dueDate.substring(0, 7) : getCurrentMonthKey());
+          if (deltaMonths !== 0) {
+            targetMonth = getAdjacentMonthKey(targetMonth, deltaMonths);
+            item.monthKey = targetMonth;
+            this.ensureMonthExists(targetMonth);
+          }
+          const [y, m] = targetMonth.split('-').map(Number);
+          const maxDay = new Date(y, m, 0).getDate();
+          const safeDay = Math.min(newDayInt, maxDay);
+          item.dueDate = `${targetMonth}-${String(safeDay).padStart(2, '0')}`;
+        }
+      }
+
+      // Status: Strictly individual! ONLY applied to currentExpense being edited
+      if (isTarget && updates.status !== undefined && updates.status !== item.status) {
+        item.status = updates.status;
+        if (updates.status === 'paid') {
+          item.paidAt = item.paidAt || nowIso;
+        } else {
+          item.paidAt = null;
+        }
+      }
+
+      item.updatedAt = nowIso;
+    }
+
+    // 5. Recalculate InstallmentPlan Metadata
+    if (plan) {
+      if (baseDescription) {
+        plan.description = baseDescription;
+      }
+      if (updates.categoryId && scope === 'all') {
+        plan.categoryId = updates.categoryId;
+      }
+      if (updates.payee !== undefined && scope === 'all') {
+        plan.payee = updates.payee.trim();
+      }
+      if (updates.paymentMethod !== undefined && scope === 'all') {
+        plan.paymentMethod = updates.paymentMethod;
+      }
+
+      // Recalculate totalAmount by summing ALL active occurrences (Requirement 11 & 12)
+      const totalCents = activeInstallments.reduce((sum, e) => sum + toCents(e.amount), 0);
+      plan.totalAmount = fromCents(totalCents);
+
+      // Determine installmentAmount
+      const firstAmountCents = activeInstallments.length > 0 ? toCents(activeInstallments[0].amount) : 0;
+      const allSameAmount = activeInstallments.every(e => toCents(e.amount) === firstAmountCents);
+      if (allSameAmount) {
+        plan.installmentAmount = fromCents(firstAmountCents);
+      } else {
+        plan.installmentAmount = currentExpense.amount;
+      }
+      plan.updatedAt = nowIso;
+    }
+
+    // 6. Save State Once Atomically and Notify
+    this.saveState();
+
+    return {
+      success: true,
+      updatedCount: targetInstallments.length,
+      currentExpense,
+      plan
+    };
+  }
+
+  // Alias for semantic flexibility
+  updateInstallmentExpense(expenseId, updates, scope) {
+    return this.updateInstallmentOccurrence(expenseId, updates, scope);
   }
 
   // Recurring Expenses Engine (Controlled 12-Month Horizon)

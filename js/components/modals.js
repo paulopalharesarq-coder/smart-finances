@@ -6,6 +6,7 @@
  */
 
 window.closeModal = function () {
+  document.getElementById('installment-scope-modal')?.remove();
   const container = document.getElementById('modal-container');
   if (container) {
     container.innerHTML = '';
@@ -735,6 +736,24 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
     const recurringChecked = document.getElementById('expense-is-recurring-toggle')?.checked || false;
 
     if (expenseId) {
+      const exp = store.getExpenseById(expenseId);
+      // If editing an installment expense, open the scope confirmation modal
+      if (exp && exp.isInstallment && exp.installmentPlanId) {
+        window.openInstallmentScopeModal({
+          expenseId,
+          expense: exp,
+          updates: {
+            name,
+            amount: selectedAmount,
+            dueDate,
+            payee,
+            categoryId: selectedCategory || 'outras_despesas',
+            status: selectedStatus
+          }
+        });
+        return;
+      }
+
       store.updateExpense(expenseId, {
         name,
         amount: selectedAmount,
@@ -798,6 +817,155 @@ window.openExpenseModal = function (monthKey, expenseId = null) {
       store.deleteExpense(id);
       window.closeModal();
       window.showToast('Despesa excluída.', 'info');
+    }
+  };
+};
+
+// ==========================================================================
+// 3b. Installment Scope Selection Modal (Current / Future / All)
+// ==========================================================================
+window.openInstallmentScopeModal = function ({ expenseId, expense, updates }) {
+  // Remove any existing scope modal
+  document.getElementById('installment-scope-modal')?.remove();
+
+  const store = window.financeStore;
+  const currentNum = expense.installmentNumber || 1;
+  const totalNum = expense.totalInstallments || 10;
+  const planId = expense.installmentPlanId;
+  const allPlanExpenses = store.getInstallmentExpenses(planId) || [];
+  const hasHistorical = allPlanExpenses.some(
+    e => (e.installmentNumber || 0) < currentNum && (e.status === 'paid' || e.monthKey < store.getCurrentMonthKey())
+  );
+
+  let selectedScope = 'current';
+
+  const modalOverlay = document.createElement('div');
+  modalOverlay.id = 'installment-scope-modal';
+  modalOverlay.className = 'fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm fade-in';
+  modalOverlay.setAttribute('onclick', 'if(event.target === this) window.closeInstallmentScopeModal()');
+
+  modalOverlay.innerHTML = `
+    <div class="bg-surface dark:bg-[#241b15] border border-outline-variant/20 rounded-[28px] p-5 shadow-2xl max-w-sm w-full mx-auto space-y-4 slide-up" onclick="event.stopPropagation()">
+      <!-- Header -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-[#faeae0] dark:bg-[#332218] flex items-center justify-center text-[#ea7355] dark:text-[#ffb783] shrink-0 shadow-xs">
+          <span class="material-symbols-outlined text-[22px]">swap_horiz</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-bold text-base text-on-surface leading-tight">Aplicar alterações</h3>
+          <p class="text-[11px] text-on-surface-variant leading-tight">Escolha quais parcelas deste parcelamento devem receber as alterações.</p>
+        </div>
+      </div>
+
+      <!-- Scope Options -->
+      <div class="space-y-2" id="installment-scope-options">
+        <!-- Option 1: Somente esta parcela -->
+        <button type="button" onclick="window.selectInstallmentScopeOption('current')" id="scope-opt-current"
+                class="w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer bg-[#faeae0]/80 dark:bg-[#332218] border-[#ea7355] dark:border-[#ffb783] ring-1 ring-[#ea7355] dark:ring-[#ffb783]">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-[20px] text-[#ea7355] dark:text-[#ffb783] shrink-0" id="scope-icon-current">radio_button_checked</span>
+            <div>
+              <strong class="font-bold text-xs text-on-surface block">Somente esta parcela</strong>
+              <span class="text-[11px] text-on-surface-variant block">Altera apenas ${currentNum}/${totalNum}</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Option 2: Esta e as futuras -->
+        <button type="button" onclick="window.selectInstallmentScopeOption('future')" id="scope-opt-future"
+                class="w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer bg-surface dark:bg-[#241b15] border-outline-variant/30 hover:border-[#ea7355]/40">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-[20px] text-outline shrink-0" id="scope-icon-future">radio_button_unchecked</span>
+            <div>
+              <strong class="font-bold text-xs text-on-surface block">Esta e as futuras</strong>
+              <span class="text-[11px] text-on-surface-variant block">Altera ${currentNum}/${totalNum} até ${totalNum}/${totalNum}</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Option 3: Todas as parcelas -->
+        <button type="button" onclick="window.selectInstallmentScopeOption('all')" id="scope-opt-all"
+                class="w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer bg-surface dark:bg-[#241b15] border-outline-variant/30 hover:border-[#ea7355]/40">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-[20px] text-outline shrink-0" id="scope-icon-all">radio_button_unchecked</span>
+            <div>
+              <strong class="font-bold text-xs text-on-surface block">Todas as parcelas</strong>
+              <span class="text-[11px] text-on-surface-variant block">Altera 1/${totalNum} até ${totalNum}/${totalNum}</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Warning Box for Historical Data (Shown when 'all' is selected and past installments exist) -->
+      <div id="scope-historical-warning" class="hidden p-3 bg-[#faeae0] dark:bg-[#332218] border border-[#ea7355]/30 rounded-2xl flex items-start gap-2.5 text-xs text-[#944a00] dark:text-[#ffb783]">
+        <span class="material-symbols-outlined text-[18px] shrink-0 text-[#ea7355]">warning</span>
+        <span class="text-[11px] leading-tight font-medium">Essa alteração também afetará parcelas anteriores já registradas. Os status individuais de pagamento de cada uma serão preservados.</span>
+      </div>
+
+      <!-- Actions: Cancelar & Confirmar -->
+      <div class="flex gap-2.5 pt-1">
+        <button type="button" onclick="window.closeInstallmentScopeModal()"
+                class="flex-1 py-2.5 bg-surface-container dark:bg-[#332218] hover:bg-surface-variant text-on-surface font-bold rounded-2xl text-xs border border-outline-variant/30 cursor-pointer transition-all">
+          Cancelar
+        </button>
+        <button type="button" id="confirm-installment-scope-btn" onclick="window.confirmInstallmentScope()"
+                class="flex-1 py-2.5 bg-[#ea7355] dark:bg-[#852f1b] text-white font-bold rounded-2xl text-xs shadow-sm hover:opacity-95 active:scale-95 cursor-pointer transition-all flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px]">check</span>
+          <span>Confirmar</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modalOverlay);
+
+  window.selectInstallmentScopeOption = function (scope) {
+    selectedScope = scope;
+    const scopes = ['current', 'future', 'all'];
+    scopes.forEach(s => {
+      const btn = document.getElementById(`scope-opt-${s}`);
+      const icon = document.getElementById(`scope-icon-${s}`);
+      if (!btn || !icon) return;
+      if (s === scope) {
+        btn.className = 'w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer bg-[#faeae0]/80 dark:bg-[#332218] border-[#ea7355] dark:border-[#ffb783] ring-1 ring-[#ea7355] dark:ring-[#ffb783]';
+        icon.className = 'material-symbols-outlined text-[20px] text-[#ea7355] dark:text-[#ffb783] shrink-0';
+        icon.innerText = 'radio_button_checked';
+      } else {
+        btn.className = 'w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer bg-surface dark:bg-[#241b15] border-outline-variant/30 hover:border-[#ea7355]/40';
+        icon.className = 'material-symbols-outlined text-[20px] text-outline shrink-0';
+        icon.innerText = 'radio_button_unchecked';
+      }
+    });
+
+    const warningEl = document.getElementById('scope-historical-warning');
+    if (warningEl) {
+      if (scope === 'all' && hasHistorical) {
+        warningEl.classList.remove('hidden');
+      } else {
+        warningEl.classList.add('hidden');
+      }
+    }
+  };
+
+  window.closeInstallmentScopeModal = function () {
+    const el = document.getElementById('installment-scope-modal');
+    if (el) el.remove();
+  };
+
+  window.confirmInstallmentScope = function () {
+    if (selectedScope === 'all' && hasHistorical) {
+      const proceed = confirm('Essa alteração também afetará parcelas anteriores já registradas. Deseja continuar?');
+      if (!proceed) return;
+    }
+
+    store.updateInstallmentOccurrence(expenseId, updates, selectedScope);
+
+    window.closeInstallmentScopeModal();
+    window.closeModal();
+    window.showToast('Parcelamento atualizado com sucesso!', 'success');
+
+    if (window.NotificationService && typeof window.NotificationService.checkDueDates === 'function') {
+      setTimeout(() => window.NotificationService.checkDueDates(), 200);
     }
   };
 };
